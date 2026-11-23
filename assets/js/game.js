@@ -524,6 +524,54 @@ function validatePlayerName(raw) {
     .replace(/'/g, '&#039;');
 }
 
+// ─── FULL GAME STATE RESET ──────────────────────────────────────────
+// Digunakan oleh startGame() (Mulai Sekarang) dan confirmReset() (Main Lagi)
+// supaya skor, streak, token, dan tampilan kartu pemain selalu mulai dari nol.
+function resetGameState() {
+  pos = [1, 1];
+  turn = 0;
+  phase = 'roll';
+  pendRaw = null; pendAfter = null; pendDice = 0;
+  rolling = false;
+
+  skipStreak = [0, 0];
+  jokerCount = [0, 0];
+  skipTodCount = [0, 0];
+
+  stats = [
+    { done:0, skipped:0, truths:0, dares:0, duos:0, wilds:0, jokerUsed:0,
+      snakeHits:0, ladderHits:0, bonusTurns:0, maxStreak:0, curStreak:0 },
+    { done:0, skipped:0, truths:0, dares:0, duos:0, wilds:0, jokerUsed:0,
+      snakeHits:0, ladderHits:0, bonusTurns:0, maxStreak:0, curStreak:0 },
+  ];
+  totalRounds = 0;
+
+  usedTruthSet = { romantis: new Set(), playful: new Set(), liar: new Set() };
+  usedDareSet  = { romantis: new Set(), playful: new Set(), liar: new Set() };
+  usedDuoSet = new Set(); usedBeraniSet = new Set(); usedDuo = [];
+
+  window._adaptedDir = null;
+  prevLevel = 'mild';
+
+  // Bersihkan tampilan kartu pemain — yang sebelumnya ketinggalan saat restart:
+  [0, 1].forEach(i => {
+    const mini = document.getElementById(`pstat-mini-${i}`);
+    if (mini) mini.textContent = '✅0 ❌0';
+    const streak = document.getElementById(`streak-${i}`);
+    if (streak) streak.textContent = '';
+    const skipBtn = document.getElementById(`skip-tod-btn-${i}`);
+    if (skipBtn) { skipBtn.textContent = '🎟️ Skip TOD ×0'; skipBtn.style.display = 'none'; }
+    const joker = document.getElementById(`joker-${i}`);
+    if (joker) { joker.textContent = '🃏 0'; joker.className = 'joker-token empty'; }
+    const heat = document.getElementById(`heat-badge-${i}`);
+    if (heat) heat.className = 'heat-badge heat-0';
+  });
+
+  const log = document.getElementById('game-log');
+  if (log) log.innerHTML = '';
+  resetDurationTimer();
+}
+
 function startGame() {
   if (!ageConsented) { addLog('⚠️ Konfirmasi usia 18+ diperlukan terlebih dahulu.'); return; }
   const n0 = validatePlayerName(document.getElementById('name0').value);
@@ -559,17 +607,7 @@ function startGame() {
   mb0.textContent = `${m.emoji} Mode ${m.label}`;
 
   addLog(`💕 ${n0} vs ${n1} — Mulai! (${m.emoji} ${m.label})`);
-  stats = [
-    { done:0, skipped:0, truths:0, dares:0, duos:0, wilds:0, jokerUsed:0,
-      snakeHits:0, ladderHits:0, bonusTurns:0, maxStreak:0, curStreak:0 },
-    { done:0, skipped:0, truths:0, dares:0, duos:0, wilds:0, jokerUsed:0,
-      snakeHits:0, ladderHits:0, bonusTurns:0, maxStreak:0, curStreak:0 },
-  ];
-  totalRounds = 0;
-  usedTruthSet = {romantis:new Set(),playful:new Set(),liar:new Set()};
-  usedDareSet  = {romantis:new Set(),playful:new Set(),liar:new Set()};
-  usedDuoSet = new Set(); usedBeraniSet = new Set(); usedDuo = [];
-  window._adaptedDir = null;
+  resetGameState();
   initCellTypes();
   buildBoard();
   drawSnakesLadders();
@@ -1002,6 +1040,7 @@ function initPions() {
     pionEls[i] = el;
     movePionTo(i, pos[i], true);
   });
+  positionPions();
 }
 
 function movePionTo(playerIdx, square, instant) {
@@ -1018,6 +1057,32 @@ function movePionTo(playerIdx, square, instant) {
     el.style.left = left + '%';
     el.style.top  = top  + '%';
   }
+}
+
+// Posisi token saat dua pemain di kotak yang sama: kecilkan + geser diagonal
+// supaya keduanya tetap terlihat penuh, tidak saling menutup.
+function positionPions() {
+  const shared = pos[0] === pos[1];
+  [0, 1].forEach(i => {
+    const el = pionEls[i];
+    if (!el) return;
+    const { left, top } = squareToPercent(pos[i]);
+    el.style.left = left + '%';
+    el.style.top  = top  + '%';
+    if (shared) {
+      el.style.width  = '7.5%';
+      el.style.height = '7.5%';
+      el.style.marginLeft = i === 0 ? '-1%' : '3.5%';
+      el.style.marginTop  = i === 0 ? '-1%' : '3.5%';
+      el.style.zIndex = 20 + i;
+    } else {
+      el.style.width  = '10%';
+      el.style.height = '10%';
+      el.style.marginLeft = '0%';
+      el.style.marginTop = '0%';
+      el.style.zIndex = 20;
+    }
+  });
 }
 
 function pulseCell(n) {
@@ -1061,6 +1126,7 @@ function animateSteps(playerIdx, from, to, callback) {
             el.style.transform = 'scale(1)';
             el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.8))';
             pos[playerIdx] = cur;
+            positionPions();
             callback();
           }, 100);
         }, 90);
@@ -1126,6 +1192,7 @@ function animateSnakeLadder(playerIdx, from, to, callback) {
     el.style.transform = 'scale(1)';
     el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.8))';
     pos[playerIdx] = to;
+    positionPions();
     callback();
   }, dur + (isSnake ? 180 : 150));
 }
@@ -1199,6 +1266,9 @@ function updateUI() {
   const c = PLAYERS[turn].colorHex;
   btn.style.background = canRoll ? `linear-gradient(135deg, ${c}, ${c}88)` : 'rgba(255,255,255,0.08)';
   btn.textContent = rolling ? '🎲 Rolling...' : canRoll ? '🎲 Lempar!' : '💕 TOD dulu...';
+
+  // Posisikan token — jaga supaya dua pemain di kotak sama tetap terlihat berdua
+  positionPions();
 }
 
 // ─── DICE ────────────────────────────────────────────────────────
@@ -1233,6 +1303,8 @@ function rollDice() {
     pendAfter = SNAKES[raw] ?? LADDERS[raw] ?? raw;
     addLog(`${PLAYERS[turn].name} 🎲 Dadu ${dice}${dice===6?' — BONUS GILIRAN! 🎲':''} → kotak ${raw}`);
     updateUI();
+    const btn = document.getElementById('btn-roll');
+    if (btn) btn.textContent = '⏳ Bergerak...';
     animateSteps(turn, cur, raw, () => {
       if (pos[turn] === 100) { endGame(); return; }
       phase = 'tod'; updateUI();
@@ -1400,6 +1472,7 @@ function getLevel(sq) {
 }
 
 const LEVEL_ORDER = ['mild', 'medium', 'hot'];
+let prevLevel = 'mild'; // level sebelumnya, agar pesan "NAIK"/"TURUN" hanya muncul saat benar-benar berubah
 
 function getAdaptiveLevel(sq) {
   const base    = getLevel(sq);
@@ -1472,8 +1545,14 @@ function showTOD(sq) {
   currentTodType = type;
   // Store adapted info for UI hint
   window._adaptedDir = adapted;
-  if (adapted === 'up')   addLog(`🔥 ${PLAYERS[turn].name} on fire! Level naik → ${level}`);
-  if (adapted === 'down') addLog(`😌 ${PLAYERS[turn].name} level turun → ${level}`);
+  // Tampilkan pesan naik/turun hanya kalau level benar-benar berubah dari sebelumnya
+  if (adapted === 'up' && level !== prevLevel) {
+    prevLevel = level;
+    addLog(`🔥 ${PLAYERS[turn].name} on fire! Level naik → ${level}`);
+  } else if (adapted === 'down' && level !== prevLevel) {
+    prevLevel = level;
+    addLog(`😌 ${PLAYERS[turn].name} level turun → ${level}`);
+  }
 
   const card  = document.getElementById('tod-card');
   const badge = document.getElementById('tod-badge');
@@ -1566,7 +1645,7 @@ function showDuoChallenge(sq, level) {
     <div class="tod-challenge" style="font-size:15px;line-height:1.7"></div>
     <div class="tod-action-btns">
       <button class="btn-done" onclick="todDone(true)">✅ Selesai!</button>
-      <button class="btn-skip" onclick="todDone(false)">❌ Skip (−3)</button>
+      <button class="btn-skip" onclick="todDone(false)">❌ Skip — mundur 3 kotak</button>
     </div>
     <div class="tod-rule">Tantangan untuk kalian berdua! 💕</div>`;
     renderTodChallenge(body.querySelector('.tod-challenge'), duoChosen, {
@@ -1643,7 +1722,7 @@ function renderChallenge(type, sq, level) {
             <div class="tod-challenge" style="font-size:15px;line-height:1.7"></div>
             <div class="tod-action-btns">
               <button class="btn-done" onclick="todDone(true)">✅ Selesai!</button>
-              <button class="btn-skip" onclick="todDone(false)">❌ Skip (−3)</button>
+              <button class="btn-skip" onclick="todDone(false)">❌ Skip — mundur 3 kotak</button>
             </div>
             <div class="tod-rule">Jawab jujur ya... 👀</div>`;
             const p0 = PLAYERS[turn];
@@ -1688,7 +1767,7 @@ function renderChallenge(type, sq, level) {
             <div class="tod-challenge" style="font-size:15px;line-height:1.7"></div>
             <div class="tod-action-btns">
               <button class="btn-done" onclick="todDone(true)">✅ Selesai!</button>
-              <button class="btn-skip" onclick="todDone(false)">❌ Skip (−3)</button>
+              <button class="btn-skip" onclick="todDone(false)">❌ Skip — mundur 3 kotak</button>
             </div>
             <div class="tod-rule">Berani lakukan ini? 🔥</div>`;
             const p0 = PLAYERS[turn];
@@ -1734,7 +1813,7 @@ function renderChallenge(type, sq, level) {
     <div class="tod-challenge" style="font-size:15px;line-height:1.7"></div>
     <div class="tod-action-btns">
       <button class="btn-done" onclick="todDone(true)">✅ Selesai!</button>
-      <button class="btn-skip" onclick="todDone(false)">❌ Skip (−3)</button>
+      <button class="btn-skip" onclick="todDone(false)">❌ Skip — mundur 3 kotak</button>
     </div>
     <div class="tod-rule">${isT?'Jawab jujur ya... 👀':'Berani lakukan ini? 🔥'}</div>`;
     renderTodChallenge(body.querySelector('.tod-challenge'), chosenText, {
@@ -1961,26 +2040,8 @@ function confirmReset() {
   bgMusicOn = false;
   const btnM = document.getElementById('btn-music');
   if (btnM) { btnM.className = 'btn-music-wrap'; btnM.innerHTML = '<span class="music-dot"></span>🎵'; }
-  resetDurationTimer();
-  pos = [1,1]; turn = 0; phase = 'roll';
-  pendRaw = null; pendAfter = null; pendDice = 0; rolling = false;
-  usedTruth = {mild:[],medium:[],hot:[]};
-  usedDare  = {mild:[],medium:[],hot:[]};
-  usedDuo   = [];
-    usedCustomTruth = [];
-  usedCustomDare  = [];
-  skipStreak = [0,0];
-  jokerCount = [0,0];
-  skipTodCount = [0,0];
+  resetGameState();
   currentTodType = null;
-  stats = [
-    { done:0, skipped:0, truths:0, dares:0, duos:0, wilds:0, jokerUsed:0,
-      snakeHits:0, ladderHits:0, bonusTurns:0, maxStreak:0, curStreak:0 },
-    { done:0, skipped:0, truths:0, dares:0, duos:0, wilds:0, jokerUsed:0,
-      snakeHits:0, ladderHits:0, bonusTurns:0, maxStreak:0, curStreak:0 },
-  ];
-  totalRounds = 0;
-  initCellTypes();
   document.getElementById('winner-overlay').classList.remove('show');
   document.getElementById('recap-overlay').classList.remove('show');
   document.getElementById('tod-overlay').classList.remove('show');
@@ -2089,7 +2150,7 @@ function addLog(msg) {
   const d = document.createElement('div');
   d.className = 'log-entry'; d.textContent = msg;
   log.insertBefore(d, log.firstChild);
-  while (log.children.length > 5) log.removeChild(log.lastChild);
+  while (log.children.length > 50) log.removeChild(log.lastChild);
 }
 
 // ─── RECAP CARD (Canvas 2D — downloadable PNG) ───────────────────
