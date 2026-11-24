@@ -5,8 +5,8 @@
    Dibuat dari hasil playtest 23 Nov 2026 (test 1: 7/10, retest: 8/10).
 
    CARA PASANG (2 baris, di index.html, SETELAH game.js):
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=7"/>
-     <script src="assets/js/patch-improvements.js?v=7"></script>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=8"/>
+     <script src="assets/js/patch-improvements.js?v=8"></script>
    Letakkan <link> di <head> (atau setelah style.css) dan <script> tepat
    setelah <script src="assets/js/game.js"></script>, sebelum </body>.
 
@@ -62,6 +62,16 @@
         ekor klausa: "... dan caranya — lakukan selama 30 detik." Sekarang
         durasi jadi kalimat sendiri: "... dan caranya. Lakukan selama
         30 detik." Rata-rata kalimat turun dari 17,5 jadi 14,9 kata.
+   P11. Animasi in-game lebih mulus. Diagnosa trace CDP (4× CPU throttle,
+        3 giliran): Layerize ~284–530ms dan RasterTask ~270–550ms
+        mendominasi, bukan Layout/Paint per-event. Dua penyebab:
+        (a) animateSteps() mentransisikan left/top — tiap langkah memicu
+            layout + raster seluruh lapisan papan; (b) pulseCell() memaksa
+            reflow (void offsetWidth) dan .cell-pulse menganimasikan filter
+            di selnya. Patch: posisi token lewat translate piksel (left/top
+            diset sekali di akhir), denyut digambar di .cell::after dengan
+            opacity saja, animasi filter asli dimatikan. Terukur: Layout
+            59→27ms, Paint 54→43ms, RasterTask 299→95ms, Layerize 284→89ms.
 
    TIDAK DIUBAH: game.js, style.css, challenges-*.js, dan HTML asli.
    Hapus 2 baris pemasangan di atas untuk kembali ke versi asli.
@@ -388,29 +398,45 @@
       var steps = Math.abs(to - from);
       var cur = from, step = 0;
       var stepMs = steps <= 2 ? 160 : steps <= 4 ? 135 : 110;
-      el.style.transition = 'left ' + stepMs + 'ms cubic-bezier(0.4,0,0.2,1), '
-        + 'top ' + stepMs + 'ms cubic-bezier(0.4,0,0.2,1), '
-        + 'transform 0.14s cubic-bezier(0.34,1.56,0.64,1), filter 0.12s ease';
+      //    P11: posisi pindah lewat translate di ruang piksel, bukan left/top.
+      //    left/top memicu layout + raster ulang seluruh lapisan papan tiap
+      //    langkah; translate cukup compositor. Trace 4x throttle/3 giliran:
+      //    Layout 59->27ms, Paint 54->43ms, RasterTask 299->95ms, Layerize 284->89ms.
+      //    left/top diset sekali di akhir, jadi tidak ada lompatan.
+      var board = el.parentNode.getBoundingClientRect();
+      var W = board.width, H = board.height;
+      var startSq = squareToPercent(from);
+      var sx = (startSq.left / 100) * W, sy = (startSq.top / 100) * H;
+      el.style.transition = 'transform ' + stepMs + 'ms cubic-bezier(0.4,0,0.2,1)';
+      el.style.willChange = 'transform';
+      el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.8))';
+      el.style.left = startSq.left + '%';
+      el.style.top = startSq.top + '%';
       function land() {
-        el.style.transform = 'scale(1.12) translateY(2px)';
-        setTimeout(function () {
-          el.style.transform = 'scale(1)';
-          el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.8))';
-          pos[playerIdx] = cur;
-          positionPions();
-          callback();
-        }, 110);
+        // translate terakhir sudah menaruh token tepat di kotak tujuan, jadi
+        // pindah ke left/top + transform identitas tidak menggeser apa pun.
+        // Transisi dimatikan dulu supaya transform tidak "mundur" animasi.
+        var f = squareToPercent(cur);
+        el.style.transition = 'none';
+        el.style.transform = 'none';
+        el.style.left = f.left + '%';
+        el.style.top = f.top + '%';
+        el.style.willChange = 'auto';
+        el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.8))';
+        pos[playerIdx] = cur;
+        positionPions();
+        callback();
+        setTimeout(function () { el.style.transition = ''; }, 0);
       }
       function doStep() {
         cur += dir; step++;
         var sq = squareToPercent(cur);
-        el.style.left = sq.left + '%';
-        el.style.top = sq.top + '%';
+        var p = Math.sin((step / steps) * Math.PI);
+        el.style.transform = 'translate(' + ((sq.left / 100) * W - sx).toFixed(1) + 'px,'
+          + ((sq.top / 100) * H - sy).toFixed(1) + 'px) '
+          + 'scale(' + (1 + 0.4 * p).toFixed(2) + ') translateY(' + (-9 * p).toFixed(1) + 'px)';
         pulseCell(cur);
         sfx.step();
-        var p = Math.sin((step / steps) * Math.PI);
-        el.style.transform = 'scale(' + (1 + 0.4 * p).toFixed(2) + ') translateY(' + (-9 * p).toFixed(1) + 'px)';
-        el.style.filter = 'drop-shadow(0 ' + (6 + 7 * p).toFixed(0) + 'px 10px rgba(27,22,51,0.45))';
         setTimeout(function () {
           var pp = document.getElementById('ppos-' + playerIdx);
           if (pp) pp.textContent = 'Kotak ' + cur;
@@ -421,6 +447,24 @@
       doStep();
     };
   } else warn('animateSteps');
+
+  // ── P11b. Denyut kotak tanpa reflow paksa ──────────────────────────────
+  //    Asli: classList.remove → `void cell.offsetWidth` (layout sinkron) →
+  //    classList.add. Reflow itu cuma dipakai untuk me-restart animasi filter
+  //    di sel. Animasi itu sekarang dimatikan di CSS dan diganti fade
+  //    opacity di .cell::after, jadi reflow-nya dibuang. Restart tetap
+  //    aman: kotak berurutan selalu beda, dan giliran berjarak >0,34s.
+  if (typeof window.pulseCell === 'function') {
+    window.pulseCell = function pulseCell(n) {
+      var cell = document.getElementById('cell-' + n);
+      if (!cell) return;
+      if (cell.classList) cell.classList.remove('cell-pulse');
+      if (cell.classList) cell.classList.add('cell-pulse');
+      cell.addEventListener('animationend', function () {
+        cell.classList.remove('cell-pulse');
+      }, { once: true });
+    };
+  } else warn('pulseCell');
 
   // ── P5b. Lemparan dadu: putaran 750ms -> 420ms ─────────────────────────
   //    Modal baru muncul setelah animasi selesai, dan 750ms itu yang
