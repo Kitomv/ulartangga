@@ -4,9 +4,9 @@
    Drop-in patch untuk game di repo Kitomv/ulartangga (master, commit be5b450).
    Dibuat dari hasil playtest 23 Nov 2026 (test 1: 7/10, retest: 8/10).
 
-   CARA PASANG (2 baris, di ular-tangga-split.html, SETELAH game.js):
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=1"/>
-     <script src="assets/js/patch-improvements.js?v=1"></script>
+   CARA PASANG (2 baris, di index.html, SETELAH game.js):
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=3"/>
+     <script src="assets/js/patch-improvements.js?v=2"></script>
    Letakkan <link> di <head> (atau setelah style.css) dan <script> tepat
    setelah <script src="assets/js/game.js"></script>, sebelum </body>.
 

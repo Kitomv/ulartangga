@@ -2,20 +2,37 @@
    patch-improvements.css — Ular Tangga Truth or Dare
    Pasangan dari patch-improvements.js. Load SETELAH style.css di
    index.html:
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=1"/>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=3"/>
    Semua aturan di sini menimpa style.css asli (load order), tanpa
    mengedit file aslinya. Hapus baris <link> di atas untuk kembali normal.
    ========================================================================== */
 
-/* ── Nomor kotak: lebih besar, lebih terang, tetap di atas badge T/D ──────
-   Asli: clamp(7px, 1vw, 10px), rgba(255,255,255,0.65).
-   Di layar kecil malah mengecil ke 4–6px. */
+/* ── Nomor kotak: tetap terbaca sebagai tinta di kertas, bukan chip ──────
+   Asli: clamp(7px, 1vw, 10px). Di layar kecil malah mengecil ke 4–6px.
+   Halo kertas: nomor sudah melukis di atas ular/tangga (paint order
+   benar), yang kurang kontras. Knockout cream memisahkannya dari
+   badan ular maroon, dan tak terlihat di atas sel kertas. */
 .cell-num {
   font-size: clamp(9px, 1.3vw, 12px) !important;
-  color: #ffffff !important;
-  background: rgba(0, 0, 0, 0.55) !important;
-  padding: 1px 3px !important;
+  color: var(--ink, #1B1633) !important;
+  background: none !important;
+  padding: 0 !important;
   z-index: 5 !important;
+  text-shadow:
+    0 0 3px var(--paper-2, #FBF4E4),
+    0 0 3px var(--paper-2, #FBF4E4),
+    1px 1px 0 var(--paper-2, #FBF4E4),
+    -1px -1px 0 var(--paper-2, #FBF4E4);
+}
+
+/* ── TOD action row: "Skip — mundur 3 kotak" butuh ~186px, dapat 173px di
+   grid 1fr 1fr sampai label pecah dua baris. Bagi porsi sesuai panjang
+   label; nowrap supaya tidak pernah pecah. ─────────────────────────────── */
+.tod-action-btns {
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr) !important;
+}
+.btn-done, .btn-skip {
+  white-space: nowrap !important;
 }
 
 /* ── Level bar: pip terlalu tipis (4px) sampai eskalasi tidak terasa ────── */
@@ -40,7 +57,7 @@
 }
 #skip-tod-btn-0:not(:disabled),
 #skip-tod-btn-1:not(:disabled) {
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.45) !important;
+  box-shadow: 2px 2px 0 var(--marigold, #F5A03C) !important;
 }
 
 /* ── Log game: pastikan selalu bisa di-scroll (cadangan kalau style.css
@@ -48,6 +65,13 @@
 .game-log {
   overflow-y: auto !important;
   max-height: 180px !important;
+}
+/* Log kosong sebelum lemparan pertama: dulu menyisakan strip berbingkai
+   19px. Ciutkan sampai ada entri; elemen tetap di DOM untuk aria-live. */
+.game-log:empty {
+  border: 0 !important;
+  padding: 0 !important;
+  max-height: 0 !important;
 }
 
 /* ── Modal pemenang / statistik / recap: jangan sempit di layar kecil ────
@@ -68,47 +92,47 @@
   transform-origin: center bottom !important;
 }
 
-/* ── Frontend design refinement (opinionated, drop-in) ──
-   Token-level overrides specific to this brief: dark romantic noir,
-   serif display as the active type treatment, sentence-case copy,
-   one memorable element = heat overlay. Loads after style.css.
-   No original files edited.
+/* ── Frontend design refinement (cetak malam, drop-in) ──
+   Cetak malam: cream stock, riso inks, indigo night for the cover and
+   cards. One memorable element = the printed board itself. Quiet
+   letterpress rules elsewhere. Loads after style.css; no original
+   files edited.
 */
 
 /* ── Type: sentence case instead of ALL-CAPS default tell ────────── */
 .subtitle {
-  text-transform: none !important;
-  letter-spacing: 1px !important;
+  text-transform: lowercase !important;
+  letter-spacing: 0.2em !important;
   font-weight: 700 !important;
-  font-size: 12px !important;
-  color: #94a3b8 !important;
+  font-size: 11px !important;
+  color: var(--ink-soft, #4B4463) !important;
 }
 
-/* h1 as the active hero type treatment (serif, tight) */
+/* h1 as the active hero type treatment (wonky serif, tight) */
 h1 {
-  font-family: 'Playfair Display', serif !important;
+  font-family: var(--font-display, 'Fraunces', Georgia, serif) !important;
   font-weight: 900 !important;
-  letter-spacing: -0.5px !important;
+  letter-spacing: -0.02em !important;
 }
 
-/* ── Consent screen hero: larger 🔞 icon, dramatic serif headline ── */
+/* ── Consent screen hero: serif headline, no glow ── */
 .consent-icon {
-  font-size: 100px !important;
-  filter: drop-shadow(0 10px 24px rgba(244,114,182,0.6)) !important;
+  font-size: 76px !important;
+  filter: none !important;
 }
 .consent-title {
-  font-family: 'Playfair Display', serif !important;
+  font-family: var(--font-display, 'Fraunces', Georgia, serif) !important;
   font-weight: 900 !important;
-  letter-spacing: -1px !important;
-  line-height: 1.1 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.08 !important;
 }
 
-/* ── Level badge: intentional small serif label ── */
+/* ── Level badge: small inked label ── */
 .level-label {
-  font-family: 'Playfair Display', serif !important;
+  font-family: var(--font-ui, 'Karla', sans-serif) !important;
   font-size: 10px !important;
-  letter-spacing: 3px !important;
-  text-transform: uppercase !important;
+  letter-spacing: 0.18em !important;
+  text-transform: lowercase !important;
 }
 
 /* ── Mood names: sentence case, not tracked caps ── */
@@ -119,7 +143,7 @@ h1 {
 
 /* ── Heat overlay: the one memorable element ── */
 #heat-overlay.heat-3 {
-  background: radial-gradient(ellipse at center, transparent 12%, rgba(239,68,68,0.5) 100%) !important;
+  background: radial-gradient(ellipse at center, transparent 12%, rgba(244,81,75,0.42) 100%) !important;
   animation: heatPulse 1.4s ease infinite !important;
 }
 
@@ -130,19 +154,19 @@ h1 {
   .pion { transition: none !important; }
 }
 
-/* ── End-state hero: winner card with deeper romantic noir ── */
+/* ── End-state hero: winner card as a night card with a coral letterpress ── */
 .winner-card {
-  background: linear-gradient(160deg, #0f070a, #170b13) !important;
-  border: 3px solid #f43f5e !important;
-  box-shadow: 0 0 120px rgba(244,63,94,0.45) !important;
+  background: #1C1636 !important;
+  border: 2px solid var(--paper, #F6ECD8) !important;
+  box-shadow: 8px 8px 0 var(--coral, #F4514B) !important;
 }
 .winner-btn {
-  background: linear-gradient(135deg, #f43f5e, #fb923c) !important;
-  box-shadow: 0 6px 28px rgba(244,63,94,0.45) !important;
+  background: var(--coral, #F4514B) !important;
+  box-shadow: 4px 4px 0 var(--marigold, #F5A03C) !important;
 }
 .winner-btn:hover {
-  box-shadow: 0 10px 36px rgba(244,63,94,0.55) !important;
-  transform: translateY(-2px) !important;
+  box-shadow: 6px 6px 0 var(--marigold, #F5A03C) !important;
+  transform: translate(-1px, -1px) !important;
 }
 
 /* ── ui-ux-pro-max: CRITICAL — touch targets ≥44×44px ──────────── */
@@ -166,16 +190,24 @@ h1 {
 button:focus-visible,
 [role="button"]:focus-visible,
 #dice-wrap:focus-visible {
-  outline: 3px solid var(--romantic, #f472b6) !important;
+  outline: 3px solid var(--ink, #1B1633) !important;
   outline-offset: 2px !important;
+}
+#age-consent-screen button:focus-visible,
+#name-screen button:focus-visible,
+#name-screen input:focus-visible,
+#tod-overlay button:focus-visible,
+#stats-overlay button:focus-visible,
+#winner-overlay button:focus-visible,
+#recap-overlay button:focus-visible {
+  outline-color: var(--paper, #F6ECD8) !important;
 }
 
 /* ── ui-ux-pro-max: CRITICAL — color is not the only indicator ── */
 .level-pip.active-mild,
 .level-pip.active-medium,
 .level-pip.active-hot {
-  border: 1px solid rgba(255,255,255,0.45) !important;
-  box-shadow: 0 0 0 1px currentColor !important;
+  border: 1px solid rgba(246,236,216,0.55) !important;
 }
 
 /* ── ui-ux-pro-max: CRITICAL — cursor pointer on all interactives ── */
@@ -193,23 +225,22 @@ html, body { overflow-x: hidden !important; }
 /* ── ui-ux-pro-max: HIGH — readable line height ── */
 body { line-height: 1.6 !important; }
 
-/* ── ui-ux-pro-max: MEDIUM — smooth transitions 150–300ms ── */
-button, [role="button"] { transition: all 200ms ease !important; }
+/* ── ui-ux-pro-max: MEDIUM — smooth transitions 150–300ms ──
+   Scooped to chrome only: a blanket `transition: all` on every button
+   overrides the designed press/letterpress states and animates layout
+   properties on the roll button. */
+.side-panel button,
+.side-panel [role="button"],
+.btn-close-stats,
+.btn-recap-close {
+  transition: background-color 200ms ease, border-color 200ms ease,
+              color 200ms ease, transform 200ms ease, box-shadow 200ms ease !important;
+}
 
 /* ── frontend-design: readable measure on rules overlay (< 80 chars) ── */
 #rules-overlay ol,
 #custom-overlay .custom-list {
   max-width: 42ch !important;
-}
-
-/* ── frontend-design: one memorable element only ──
-   Heat overlay is THE memorable element; soften the winner card glow
-   so it doesn't compete, and keep the rest quiet and disciplined. ── */
-.winner-card {
-  box-shadow: 0 0 60px rgba(244,63,94,0.3) !important;
-}
-.winner-btn {
-  box-shadow: 0 4px 18px rgba(244,63,94,0.3) !important;
 }
 
 /* ── Side panel: breathable command center ──
@@ -235,18 +266,18 @@ button, [role="button"] { transition: all 200ms ease !important; }
 .legend {
   font-size: 10px !important;
   line-height: 1.6 !important;
-  color: #94a3b8 !important;
+  color: var(--ink-soft, #4B4463) !important;
 }
 
 .side-panel button,
 .side-panel [role="button"] {
-  font-family: 'Nunito', sans-serif !important;
+  font-family: var(--font-ui, 'Karla', sans-serif) !important;
 }
 
 .game-duration > span:last-child {
-  text-transform: none !important;
+  text-transform: lowercase !important;
   font-size: 10px !important;
   letter-spacing: 0.5px !important;
-  color: #94a3b8 !important;
+  color: var(--ink-soft, #4B4463) !important;
 }
 
