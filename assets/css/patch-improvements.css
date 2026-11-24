@@ -212,3 +212,41 @@ button, [role="button"] { transition: all 200ms ease !important; }
   box-shadow: 0 4px 18px rgba(244,63,94,0.3) !important;
 }
 
+/* ── Side panel: breathable command center ──
+   Desktop: widen panel so buttons & log don't feel cramped; give the
+   log more vertical room so history stays readable. Legend set in
+   sentence case, small and muted — not decorative. Panel stays quiet;
+   the heat overlay remains the single memorable element.
+*/
+@media (min-width: 841px) {
+  .side-panel {
+    min-width: 200px !important;
+    gap: 12px !important;
+  }
+  .board-wrap {
+    width: min(450px, calc(100vw - 260px)) !important;
+    height: min(450px, calc(100vw - 260px)) !important;
+  }
+  .game-log {
+    max-height: 200px !important;
+  }
+}
+
+.legend {
+  font-size: 10px !important;
+  line-height: 1.6 !important;
+  color: #94a3b8 !important;
+}
+
+.side-panel button,
+.side-panel [role="button"] {
+  font-family: 'Nunito', sans-serif !important;
+}
+
+.game-duration > span:last-child {
+  text-transform: none !important;
+  font-size: 10px !important;
+  letter-spacing: 0.5px !important;
+  color: #94a3b8 !important;
+}
+
