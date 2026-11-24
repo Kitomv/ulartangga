@@ -220,15 +220,15 @@ button, [role="button"] { transition: all 200ms ease !important; }
 */
 @media (min-width: 841px) {
   .side-panel {
-    min-width: 200px !important;
-    gap: 12px !important;
+    min-width: 165px !important;
+    gap: 10px !important;
   }
   .board-wrap {
-    width: min(450px, calc(100vw - 260px)) !important;
-    height: min(450px, calc(100vw - 260px)) !important;
+    width: min(480px, calc(100vw - 215px)) !important;
+    height: min(480px, calc(100vw - 215px)) !important;
   }
   .game-log {
-    max-height: 200px !important;
+    max-height: 180px !important;
   }
 }
 
