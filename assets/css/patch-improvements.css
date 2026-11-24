@@ -1,7 +1,7 @@
 /* ============================================================================
    patch-improvements.css — Ular Tangga Truth or Dare
    Pasangan dari patch-improvements.js. Load SETELAH style.css di
-   ular-tangga-split.html:
+   index.html:
      <link rel="stylesheet" href="assets/css/patch-improvements.css?v=1"/>
    Semua aturan di sini menimpa style.css asli (load order), tanpa
    mengedit file aslinya. Hapus baris <link> di atas untuk kembali normal.
