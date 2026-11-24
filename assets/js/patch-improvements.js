@@ -5,8 +5,8 @@
    Dibuat dari hasil playtest 23 Nov 2026 (test 1: 7/10, retest: 8/10).
 
    CARA PASANG (2 baris, di index.html, SETELAH game.js):
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=3"/>
-     <script src="assets/js/patch-improvements.js?v=2"></script>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=4"/>
+     <script src="assets/js/patch-improvements.js?v=3"></script>
    Letakkan <link> di <head> (atau setelah style.css) dan <script> tepat
    setelah <script src="assets/js/game.js"></script>, sebelum </body>.
 
@@ -41,6 +41,9 @@
    P5. updateUI() tidak pernah memanggil updateSkipTodUI(), jadi status
        disabled tombol Skip tidak pernah refresh saat giliran berubah.
        Patch: updateUI() dibungkus untuk selalu refresh tombol Skip.
+   P6. Mode gelap in-game — papan cetak versi malam. Token remap di
+       body.dark (CSS), plus tombol 🌙/☀️ di side panel. Pilihan disimpan
+       di localStorage; default mengikuti prefers-color-scheme.
 
    TIDAK DIUBAH: game.js, style.css, challenges-*.js, dan HTML asli.
    Hapus 2 baris pemasangan di atas untuk kembali ke versi asli.
@@ -250,5 +253,34 @@
   } else {
     fixStaticText();
   }
+
+  // ── P6. Mode gelap: papan cetak versi malam ─────────────────────────────
+  var THEME_KEY = 'kuro-theme';
+  function setAttr(el, k, v) { if (el && el.setAttribute) el.setAttribute(k, v); }
+  function readTheme() {
+    try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
+  }
+  function writeTheme(v) {
+    try { localStorage.setItem(THEME_KEY, v); } catch (e) {}
+  }
+  function applyTheme(dark, persist) {
+    document.body.classList.toggle('dark', dark);
+    var b = document.getElementById('btn-theme');
+    if (b) {
+      b.textContent = dark ? '☀️' : '🌙';
+      setAttr(b, 'aria-pressed', dark ? 'true' : 'false');
+      setAttr(b, 'aria-label', dark ? 'Mode terang' : 'Mode gelap');
+    }
+    if (persist) writeTheme(dark ? 'dark' : 'light');
+  }
+  window.toggleTheme = function toggleTheme() {
+    applyTheme(!document.body.classList.contains('dark'), true);
+  };
+  var savedTheme = readTheme();
+  var startDark = savedTheme
+    ? savedTheme === 'dark'
+    : typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(startDark, false);
 
 })();

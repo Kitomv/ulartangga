@@ -2,7 +2,7 @@
    patch-improvements.css — Ular Tangga Truth or Dare
    Pasangan dari patch-improvements.js. Load SETELAH style.css di
    index.html:
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=3"/>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=4"/>
    Semua aturan di sini menimpa style.css asli (load order), tanpa
    mengedit file aslinya. Hapus baris <link> di atas untuk kembali normal.
    ========================================================================== */
@@ -219,8 +219,69 @@ button:focus-visible,
   cursor: default !important;
 }
 
-/* ── ui-ux-pro-max: HIGH — no horizontal scroll ── */
-html, body { overflow-x: hidden !important; }
+/* ── ui-ux-pro-max: HIGH — no horizontal scroll ──
+   Guard on <body> only. Putting it on <html> makes html a scroll container,
+   so `body.no-scroll { overflow: hidden }` stops propagating to the viewport
+   and the game screen still scrolls. Body's overflow propagates normally. */
+body { overflow-x: hidden !important; }
+
+/* ── ui-ux-pro-max: HIGH — game screen fits the viewport, no scroll ─────
+   Page is locked with body.no-scroll during play, so the in-game stack has
+   to fit 100dvh on its own. Budgets measured from real geometry, not
+   guessed: desktop chrome above .game-layout is ~264px, mobile ~257px.
+   `!important` beats style.css's `.board-wrap { min-width: 220px }`. */
+body.no-scroll {
+  height: 100dvh; min-height: 0; overflow: hidden !important;
+  justify-content: flex-start;
+}
+body.no-scroll .subtitle { display: none !important; }
+body.no-scroll .game-layout {
+  flex: 1 1 auto; min-height: 0; max-height: none; overflow: hidden;
+}
+body.no-scroll .player-cards { flex-shrink: 0; }
+
+@media (max-height: 720px) { .legend { display: none !important; } }
+
+@media (min-width: 841px) {
+  body.no-scroll .board-wrap {
+    width: min(480px, calc(100vw - 215px), calc(100dvh - 300px)) !important;
+    height: min(480px, calc(100vw - 215px), calc(100dvh - 300px)) !important;
+  }
+}
+@media (min-width: 601px) and (max-width: 840px) {
+  body.no-scroll .board-wrap {
+    width: min(400px, calc(100vw - 155px), calc(100dvh - 320px)) !important;
+    height: min(400px, calc(100vw - 155px), calc(100dvh - 320px)) !important;
+  }
+}
+@media (max-width: 600px) {
+  body.no-scroll h1 { display: none !important; }
+  body.no-scroll .board-wrap {
+    width: min(calc(100vw - 12px), calc(100dvh - 375px)) !important;
+    height: min(calc(100vw - 12px), calc(100dvh - 375px)) !important;
+    min-width: 0; min-height: 0;
+  }
+  body.no-scroll .game-duration { width: auto !important; flex: 0 0 auto; }
+}
+/* Short landscape (phone on its side): reclaim the chrome instead of
+   shrinking the board to a stamp. */
+@media (max-height: 560px) {
+  body.no-scroll h1,
+  body.no-scroll #mood-badge-bar,
+  body.no-scroll #dice-wrap { display: none !important; }
+  body.no-scroll .player-cards { gap: 6px !important; margin-bottom: 6px !important; }
+  body.no-scroll .player-card { padding: 5px 8px !important; }
+  body.no-scroll .pcard-name { font-size: 11px !important; }
+  body.no-scroll .pcard-pos { font-size: 15px !important; margin-top: 0 !important; }
+  body.no-scroll .heat-badge { display: none !important; }
+  body.no-scroll .side-panel { gap: 5px !important; }
+  body.no-scroll .game-log { max-height: 60px !important; }
+  body.no-scroll .board-wrap {
+    width: min(480px, calc(100vw - 170px), calc(100dvh - 175px)) !important;
+    height: min(480px, calc(100vw - 170px), calc(100dvh - 175px)) !important;
+    min-width: 0 !important; min-height: 0 !important;
+  }
+}
 
 /* ── ui-ux-pro-max: HIGH — readable line height ── */
 body { line-height: 1.6 !important; }
@@ -242,6 +303,83 @@ body { line-height: 1.6 !important; }
 #custom-overlay .custom-list {
   max-width: 42ch !important;
 }
+
+/* ── In-game dark mode: the same printed sheet, run as a night plate ─────
+   Tokens are remapped on <body>, so every surface that already reads
+   var(--paper*) / var(--ink*) inverts for free. Only the hardcoded
+   rgba(27,22,51,…) hairlines and shadows need a cream twin. The snake,
+   ladder, dice and heart artwork is left untouched — that is ink. */
+body.dark {
+  --paper: #120E22;
+  --paper-2: #1B1633;
+  --paper-3: #221B3E;
+  --ink: #F6ECD8;
+  --ink-soft: #BEB3D0;
+  --ink-faint: #8F86A6;
+  --card: #1B1633;
+  --bg: #120E22;
+  --bg2: #1B1633;
+  --border: rgba(246,236,216,0.18);
+  color-scheme: dark;
+}
+
+body.dark .cell { border-color: rgba(246,236,216,0.12) !important; }
+body.dark .board-wrap {
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.45), 0 0 0 1px rgba(246,236,216,0.22) !important;
+}
+body.dark .player-card { box-shadow: 2px 2px 0 rgba(0,0,0,0.35) !important; }
+body.dark .player-card.active-0 { box-shadow: 3px 3px 0 var(--p0) !important; }
+body.dark .player-card.active-1 { box-shadow: 3px 3px 0 var(--p1) !important; }
+body.dark #dice-wrap { filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.5)) !important; }
+body.dark .btn-roll:disabled {
+  background: rgba(246,236,216,0.10) !important;
+  color: var(--ink-faint) !important;
+}
+/* The night surfaces were already dark and use --paper as their text colour.
+   Give them the cream palette back so flipping the page tokens does not
+   turn their text into dark-on-dark. */
+body.dark #age-consent-screen,
+body.dark #name-screen,
+body.dark #tod-overlay,
+body.dark #winner-overlay,
+body.dark #stats-overlay,
+body.dark #recap-overlay,
+body.dark #rules-overlay,
+body.dark #custom-overlay {
+  --paper: #F6ECD8;
+  --paper-2: #FBF4E4;
+  --paper-3: #EDE0C6;
+  --ink: #1B1633;
+  --border: rgba(27,22,51,0.16);
+}
+
+/* Flat ink badges on the board: the fill stays saturated, so the letter
+   stays cream (or dark, on butter) regardless of theme. */
+body.dark .tod-t,
+body.dark .tod-d,
+body.dark .tod-duo,
+body.dark .tod-wild,
+body.dark .tod-berani { color: #FBF4E4 !important; }
+body.dark .tod-joker { color: #1B1633 !important; }
+
+/* Hardcoded dark browns on amber fills lose contrast on night. */
+body.dark .heat-1 { color: #FFC98A !important; }
+body.dark .heat-2 { color: #FFA8A3 !important; }
+body.dark .joker-token { color: #FFE1A3 !important; }
+body.dark .streak-badge.mega { color: #1B1633 !important; }
+/* Mood badge gets its colour written inline by game.js; brighten it rather
+   than override it, so each mood keeps its own ink. */
+body.dark #mood-badge-bar { filter: brightness(1.35); }
+
+.btn-theme {
+  padding: 8px 10px; background: transparent;
+  border: 1px solid var(--border); border-radius: 2px;
+  color: var(--ink-faint); cursor: pointer; font-size: 14px;
+  font-family: var(--font-ui); flex-shrink: 0;
+  min-width: 44px; min-height: 44px;
+  transition: border-color .2s, color .2s;
+}
+.btn-theme:hover { border-color: var(--ink); color: var(--ink); }
 
 /* ── Side panel: breathable command center ──
    Desktop: widen panel so buttons & log don't feel cramped; give the
