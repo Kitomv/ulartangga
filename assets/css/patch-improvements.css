@@ -67,3 +67,80 @@
 .pion {
   transform-origin: center bottom !important;
 }
+
+/* ── Frontend design refinement (opinionated, drop-in) ──
+   Token-level overrides specific to this brief: dark romantic noir,
+   serif display as the active type treatment, sentence-case copy,
+   one memorable element = heat overlay. Loads after style.css.
+   No original files edited.
+*/
+
+/* ── Type: sentence case instead of ALL-CAPS default tell ────────── */
+.subtitle {
+  text-transform: none !important;
+  letter-spacing: 1px !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  color: #94a3b8 !important;
+}
+
+/* h1 as the active hero type treatment (serif, tight) */
+h1 {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.5px !important;
+}
+
+/* ── Consent screen hero: larger 🔞 icon, dramatic serif headline ── */
+.consent-icon {
+  font-size: 100px !important;
+  filter: drop-shadow(0 10px 24px rgba(244,114,182,0.6)) !important;
+}
+.consent-title {
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 900 !important;
+  letter-spacing: -1px !important;
+  line-height: 1.1 !important;
+}
+
+/* ── Level badge: intentional small serif label ── */
+.level-label {
+  font-family: 'Playfair Display', serif !important;
+  font-size: 10px !important;
+  letter-spacing: 3px !important;
+  text-transform: uppercase !important;
+}
+
+/* ── Mood names: sentence case, not tracked caps ── */
+.mood-name {
+  text-transform: none !important;
+  font-weight: 800 !important;
+}
+
+/* ── Heat overlay: the one memorable element ── */
+#heat-overlay.heat-3 {
+  background: radial-gradient(ellipse at center, transparent 12%, rgba(239,68,68,0.5) 100%) !important;
+  animation: heatPulse 1.4s ease infinite !important;
+}
+
+/* ── Quality floor: respect reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  #heat-overlay { transition: none !important; }
+  .pion { transition: none !important; }
+}
+
+/* ── End-state hero: winner card with deeper romantic noir ── */
+.winner-card {
+  background: linear-gradient(160deg, #0f070a, #170b13) !important;
+  border: 3px solid #f43f5e !important;
+  box-shadow: 0 0 120px rgba(244,63,94,0.45) !important;
+}
+.winner-btn {
+  background: linear-gradient(135deg, #f43f5e, #fb923c) !important;
+  box-shadow: 0 6px 28px rgba(244,63,94,0.45) !important;
+}
+.winner-btn:hover {
+  box-shadow: 0 10px 36px rgba(244,63,94,0.55) !important;
+  transform: translateY(-2px) !important;
+}
