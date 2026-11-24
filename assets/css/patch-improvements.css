@@ -2,7 +2,7 @@
    patch-improvements.css — Ular Tangga Truth or Dare
    Pasangan dari patch-improvements.js. Load SETELAH style.css di
    index.html:
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=4"/>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=5"/>
    Semua aturan di sini menimpa style.css asli (load order), tanpa
    mengedit file aslinya. Hapus baris <link> di atas untuk kembali normal.
    ========================================================================== */
@@ -13,7 +13,7 @@
    benar), yang kurang kontras. Knockout cream memisahkannya dari
    badan ular maroon, dan tak terlihat di atas sel kertas. */
 .cell-num {
-  font-size: clamp(9px, 1.3vw, 12px) !important;
+  font-size: clamp(10px, 2.6vw, 12px) !important;
   color: var(--ink, #1B1633) !important;
   background: none !important;
   padding: 0 !important;
@@ -82,9 +82,34 @@
     max-width: 94vw !important;
     padding: 18px 16px !important;
   }
-  .cell-num {
-    font-size: clamp(7px, 2vw, 9px) !important;
-  }
+}
+
+/* ── Tombol Skip TOD di dalam modal ─────────────────────────────────────
+   #tod-overlay (z 100) menutupi .player-card (z auto), jadi tombol Skip di
+   kartu pemain tak bisa diklik selama tantangan terbuka. Tombol ini dibuat
+   patch JS di DOM, tepat di bawah #btn-joker. Warna coral supaya beda dari
+   Joker (butter) dan dari Skip penalti (outline). */
+.btn-skip-tod-modal {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px 10px;
+  min-height: 44px;
+  border: 1px solid var(--coral, #F4514B);
+  border-radius: 2px;
+  background: rgba(244,81,75,0.14);
+  color: #FFC4C0;
+  font-family: var(--font-ui, 'Karla', sans-serif);
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn-skip-tod-modal:not(:disabled):hover { background: rgba(244,81,75,0.26); }
+.btn-skip-tod-modal:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
 }
 
 /* ── Token: jaga transform-origin tetap di bawah saat patch JS men-scale ── */

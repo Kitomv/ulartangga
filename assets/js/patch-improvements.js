@@ -5,8 +5,8 @@
    Dibuat dari hasil playtest 23 Nov 2026 (test 1: 7/10, retest: 8/10).
 
    CARA PASANG (2 baris, di index.html, SETELAH game.js):
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=4"/>
-     <script src="assets/js/patch-improvements.js?v=3"></script>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=5"/>
+     <script src="assets/js/patch-improvements.js?v=4"></script>
    Letakkan <link> di <head> (atau setelah style.css) dan <script> tepat
    setelah <script src="assets/js/game.js"></script>, sebelum </body>.
 
@@ -15,9 +15,10 @@
        7.5% lebar, offset diagonal -1% / +3.5% => tumpang tindih ~3% lebar
        papan (~40% lebar token), plus SVG overflow:visible. Di kotak 1,
        token P0 malah meluber ke luar papan (-1%).
-       Patch: token dibagi dua secara horizontal, scale(0.5) di sekitar
-       bottom-centre — visual P0 menempati 0–5% sel, P1 5–10% sel,
-       tanpa overlap dan tanpa keluar sel.
+       Patch: dua token 0.72× (~28px di papan 390px) bersinggungan kiri|kanan
+       di tengah sel, tanpa margin vertikal. Pasangannya sengaja menjulur ke
+       sel tetangga; kalau menyentuh tepi papan keduanya digeser bersama
+       supaya jarak antar token tetap 0.
    P2. Skip TOD "hilang" setelah Main Lagi + token jarang didapat —
        (a) updateSkipTodUI() lama menyembunyikan tombol saat count = 0,
        jadi pemain mengira fiturnya rusak. Patch: tombol SELALU tampil,
@@ -44,6 +45,9 @@
    P6. Mode gelap in-game — papan cetak versi malam. Token remap di
        body.dark (CSS), plus tombol 🌙/☀️ di side panel. Pilihan disimpan
        di localStorage; default mengikuti prefers-color-scheme.
+   P7. (a) Token berjalan jauh lebih cepat — 1,95s jadi ~1,3s roll→modal.
+       (b) Timer durasi tidak hidup lagi setelah "Main Lagi".
+       (c) Tombol Skip TOD bisa diklik selagi modal tantangan terbuka.
 
    TIDAK DIUBAH: game.js, style.css, challenges-*.js, dan HTML asli.
    Hapus 2 baris pemasangan di atas untuk kembali ke versi asli.
@@ -63,41 +67,58 @@
   var _origResolveAfterTOD = window.resolveAfterTOD;
   var _origResetGameState = window.resetGameState;
   var _origUpdateUI = window.updateUI;
-
+  var _origAnimateSteps = window.animateSteps;
+  var _origConfirmReset = window.confirmReset;
+  var _origRollDice = window.rollDice;
   function warn(missing) {}
 
-  // ── P1. Token di kotak yang sama: berdampingan, tanpa overlap ──────────
+  // ── P1. Token di kotak yang sama: dua token besar, bersebelahan ────────
+  //    Asli: 7.5% + margin -1%/+3.5% → dua token ~19px di papan 390px yang
+  //    saling menutup, dan margin vertikal positif membuat token P1
+  //    terpotong tepi bawah (#pion-layer overflow:hidden) di kotak 1.
+  //    Sekarang: dua token 0.72× (~28px) bersinggungan kiri|kanan di tengah
+  //    sel, tanpa transform vertikal (jadi tak pernah kena tepi bawah).
+  //    Pasangan selebar 14.4% sengaja menjulur ke sel tetangga — token
+  //    melayang di atas papan. Bila pasangan menyentuh tepi papan, KEDUANYA
+  //    digeser bersama (corr), bukan diklem sendiri-sendiri: jarak antar
+  //    token tetap 0 dan lebarnya tetap 7.2% masing-masing.
+  var SHARED_SCALE = 0.72;
   if (typeof _origPositionPions === 'function') {
     window.positionPions = function positionPions() {
       var shared = pos[0] === pos[1];
+      var half = 5 * SHARED_SCALE;   // 3.6 — setengah lebar token hasil scale
+      var pairHalf = 2 * half;       // 7.2 — setengah lebar pasangan
       [0, 1].forEach(function (i) {
         var el = pionEls[i];
         if (!el) return;
         var sq = squareToPercent(pos[i]);
         el.style.left = sq.left + '%';
         el.style.top = sq.top + '%';
-        // Ukuran div tetap 10% (satu sel), tapi visual diperkecil scale(0.5)
-        // dengan transform-origin center bottom (sudah di CSS .pion).
         el.style.width = '10%';
         el.style.height = '10%';
-        if (shared) {
-          // P0: div di left-2.5%..left+7.5%, pusat left+2.5% -> visual 0–5%
-          // P1: div di left+2.5%..left+12.5%, pusat left+7.5% -> visual 5–10%
-          el.style.marginLeft = (i === 0 ? '-2.5' : '2.5') + '%';
-          el.style.marginTop = '0%';
-          el.style.transform = 'scale(0.5)';
-          el.style.zIndex = 20 + i;
-        } else {
+        el.style.marginTop = '0%';
+        if (!shared) {
           el.style.marginLeft = '0%';
-          el.style.marginTop = '0%';
           el.style.transform = 'scale(1)';
           el.style.zIndex = 20;
+          return;
         }
+        // Pasangan: P0 [left-2.2, left+5], P1 [left+5, left+12.2]
+        var corr = Math.max(0, pairHalf - 5 - sq.left);
+        corr = Math.min(corr, 95 - sq.left - pairHalf);
+        el.style.marginLeft = round2((i === 0 ? -half : half) + corr) + '%';
+        el.style.transform = 'scale(' + SHARED_SCALE + ')';
+        el.style.zIndex = 20 + i;
       });
     };
   } else warn('positionPions');
 
+  function round2(n) { return Math.round(n * 100) / 100; }
+
   // ── P2a. Tombol Skip TOD: selalu tampil, disabled saat tidak bisa ──────
+  //    Termasuk cerminannya di dalam modal (#tod-overlay z-index 100 menutupi
+  //    tombol di kartu pemain, jadi tombol di kartu tak bisa diklik saat TOD
+  //    terbuka — dulu itulah satu-satunya tombol Skip gratis).
   if (typeof _origUpdateSkipTodUI === 'function') {
     window.updateSkipTodUI = function updateSkipTodUI() {
       [0, 1].forEach(function (i) {
@@ -119,8 +140,35 @@
         }
         if (el.classList) el.classList.toggle('skip-tod-disabled', !usable);
       });
+      var modalBtn = document.getElementById('skip-tod-modal');
+      if (modalBtn) {
+        var n = skipTodCount[turn];
+        modalBtn.textContent = '🎟️ Skip tantangan ini — gratis ×' + n;
+        modalBtn.disabled = !(n > 0 && phase === 'tod');
+        if (modalBtn.classList) modalBtn.classList.toggle('skip-tod-disabled', modalBtn.disabled);
+      }
     };
   } else warn('updateSkipTodUI');
+
+  // Tombol Skip di dalam modal: satu-satunya jalan karena overlay menutupi
+  // kartu pemain. Dibuat di DOM, bukan di index.html, supaya patch tetap drop-in.
+  function injectModalSkip() {
+    var card = document.getElementById('tod-card');
+    var joker = document.getElementById('btn-joker');
+    if (!card || !joker || document.getElementById('skip-tod-modal')) return;
+    var btn = document.createElement('button');
+    btn.id = 'skip-tod-modal';
+    btn.className = 'btn-skip-tod-modal';
+    btn.type = 'button';
+    btn.addEventListener('click', function () { useSkipTod(turn); });
+    joker.parentNode.insertBefore(btn, joker.nextSibling);
+    updateSkipTodUI();
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', injectModalSkip);
+  } else {
+    injectModalSkip();
+  }
 
   // ── P2c. useSkipTod: jangan diam saat token 0, beri penjelasan ─────────
   if (typeof _origUseSkipTod === 'function') {
@@ -218,6 +266,103 @@
       updateSkipTodUI();
     };
   } else warn('updateUI');
+
+  // ── P5. Token berjalan lebih cepat ─────────────────────────────────────
+  //    Asli: per kotak 0.68×stepMs + 0.6×stepMs = 1.28×stepMs, ditambah
+  //    bounce 190ms. Dadu 1–6, jadi 6 kotak di stepMs 155 = ~1,4s dan
+  //    roll→modal rata-rata ~1,95s (terukur). Sekarang satu jeda 0,95×stepMs
+  //    per kotak dan bounce 110ms: 6 kotak ~0,74s, total ~1,45s.
+  //    Dadu (750ms di rollDice) tidak diubah.
+  if (typeof _origAnimateSteps === 'function') {
+    window.animateSteps = function animateSteps(playerIdx, from, to, callback) {
+      var el = pionEls[playerIdx];
+      var dir = to > from ? 1 : -1;
+      var steps = Math.abs(to - from);
+      var cur = from, step = 0;
+      var stepMs = steps <= 2 ? 160 : steps <= 4 ? 135 : 110;
+      el.style.transition = 'left ' + stepMs + 'ms cubic-bezier(0.4,0,0.2,1), '
+        + 'top ' + stepMs + 'ms cubic-bezier(0.4,0,0.2,1), '
+        + 'transform 0.14s cubic-bezier(0.34,1.56,0.64,1), filter 0.12s ease';
+      function land() {
+        el.style.transform = 'scale(1.12) translateY(2px)';
+        setTimeout(function () {
+          el.style.transform = 'scale(1)';
+          el.style.filter = 'drop-shadow(0 4px 10px rgba(0,0,0,0.8))';
+          pos[playerIdx] = cur;
+          positionPions();
+          callback();
+        }, 110);
+      }
+      function doStep() {
+        cur += dir; step++;
+        var sq = squareToPercent(cur);
+        el.style.left = sq.left + '%';
+        el.style.top = sq.top + '%';
+        pulseCell(cur);
+        sfx.step();
+        var p = Math.sin((step / steps) * Math.PI);
+        el.style.transform = 'scale(' + (1 + 0.4 * p).toFixed(2) + ') translateY(' + (-9 * p).toFixed(1) + 'px)';
+        el.style.filter = 'drop-shadow(0 ' + (6 + 7 * p).toFixed(0) + 'px 10px rgba(27,22,51,0.45))';
+        setTimeout(function () {
+          var pp = document.getElementById('ppos-' + playerIdx);
+          if (pp) pp.textContent = 'Kotak ' + cur;
+          if (step < steps) doStep();
+          else land();
+        }, stepMs * 0.95);
+      }
+      doStep();
+    };
+  } else warn('animateSteps');
+
+  // ── P5b. Lemparan dadu: putaran 750ms -> 420ms ─────────────────────────
+  //    Modal baru muncul setelah animasi selesai, dan 750ms itu yang
+  //    mendominasi lemparan pendek (1–2 kotak). 420ms masih terbaca
+  //    sebagai dadu berputar. Logika dadu/ular/tangga tidak diubah —
+  //    salinan persis rollDice() asli, hanya durasi putarannya.
+  if (typeof _origRollDice === 'function') {
+    window.rollDice = function rollDice() {
+      if (phase !== 'roll' || rolling) return;
+      rolling = true; updateUI();
+      var wrap = document.getElementById('dice-wrap');
+      wrap.classList.add('rolling');
+      sfx.diceRoll();
+      var spin = setInterval(function () { renderDice(Math.ceil(Math.random() * 6)); }, 70);
+      setTimeout(function () {
+        clearInterval(spin); wrap.classList.remove('rolling');
+        var dice = Math.ceil(Math.random() * 6);
+        sfx.diceLand();
+        renderDice(dice); rolling = false;
+        pendDice = dice;
+        var cur = pos[turn], raw = cur + dice;
+        if (raw > 100) {
+          addLog(PLAYERS[turn].name + ' 🎲 Dadu ' + dice + '. Butuh ' + (100 - cur) + ' lagi!');
+          nextTurn(); return;
+        }
+        pendRaw = raw;
+        pendAfter = SNAKES[raw] != null ? SNAKES[raw] : (LADDERS[raw] != null ? LADDERS[raw] : raw);
+        addLog(PLAYERS[turn].name + ' 🎲 Dadu ' + dice
+          + (dice === 6 ? ' — BONUS GILIRAN! 🎲' : '') + ' → kotak ' + raw);
+        updateUI();
+        var btn = document.getElementById('btn-roll');
+        if (btn) btn.textContent = '⏳ Bergerak...';
+        animateSteps(turn, cur, raw, function () {
+          if (pos[turn] === 100) { endGame(); return; }
+          phase = 'tod'; updateUI();
+          showTOD(raw);
+        });
+      }, 420);
+    };
+  } else warn('rollDice');
+
+  // ── P3. Durasi game setelah "Main Lagi" ────────────────────────────────
+  //    confirmReset() tidak memanggil startDurationTimer(), jadi kotak timer
+  //    tetap display:none sepanjang game ke-2 dan modal pemenang tanpa durasi.
+  if (typeof _origConfirmReset === 'function') {
+    window.confirmReset = function confirmReset() {
+      _origConfirmReset();
+      startDurationTimer();
+    };
+  } else warn('confirmReset');
 
   // ── P4. Teks statis: 17+ -> 18+, tambah 3 aturan yang belum tertulis ───
   function fixStaticText() {

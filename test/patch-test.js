@@ -125,20 +125,25 @@ function check(name, cond, extra) {
 }
 // Visual span token: div [left+margin, left+margin+10], scale s di sekitar
 // pusat => visual [pusat - 5*s, pusat + 5*s], dalam % lebar papan.
-function visualSpan(el) {
+function tokenSpan(el) {
   const left = parseFloat(el.style.left) + parseFloat(el.style.marginLeft || '0');
-  const scale = el.style.transform === 'scale(0.5)' ? 0.5 : 1;
+  const m = /scale\(([\d.]+)\)/.exec(el.style.transform || '');
+  const scale = m ? parseFloat(m[1]) : 1;
   const centre = left + 5;
   return [centre - 5 * scale, centre + 5 * scale];
 }
 
 console.log('P1 — token berbagi kotak:');
 pos = [1, 1]; positionPions();
-let [a0, a1] = visualSpan(pionEls[0]), [b0, b1] = visualSpan(pionEls[1]);
-check('P0 visual 0–5% sel', a0 === 0 && a1 === 5, JSON.stringify([a0, a1]));
-check('P1 visual 5–10% sel', b0 === 5 && b1 === 10, JSON.stringify([b0, b1]));
-check('tidak overlap', a1 <= b0);
-check('tidak keluar sel (0–10)', a0 >= 0 && b1 <= 10);
+let [a0, a1] = tokenSpan(pionEls[0]), [b0, b1] = tokenSpan(pionEls[1]);
+check('P0 & P1 tidak overlap', a1 <= b0, JSON.stringify([[a0, a1], [b0, b1]]));
+check('tidak keluar papan (0–100)', a0 >= 0 && b1 <= 100, JSON.stringify([a0, b1]));
+check('tiap token >= 60% sel', (a1 - a0) >= 6 && (b1 - b0) >= 6, JSON.stringify([a1 - a0, b1 - b0]));
+check('tidak ada margin vertikal (tak terpotong tepi bawah)',
+  parseFloat(pionEls[0].style.marginTop) === 0 && parseFloat(pionEls[1].style.marginTop) === 0);
+pos = [100, 100]; positionPions();
+[a0, a1] = tokenSpan(pionEls[0]); [b0, b1] = tokenSpan(pionEls[1]);
+check('kotak 100: tetap di dalam papan', a0 >= 0 && b1 <= 100 && a1 <= b0, JSON.stringify([[a0, a1], [b0, b1]]));
 pos = [1, 5]; positionPions();
 check('tidak berbagi: kembali scale 1', pionEls[0].style.transform === 'scale(1)');
 
