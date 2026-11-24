@@ -1,7 +1,7 @@
 /* Harness uji patch-improvements.js dengan DOM stub.
    Fungsi "asli" di bawah ini adalah versi ringkas yang meniru perilaku
    master (game.js) pada bagian yang relevan — bukan copy penuh game.js.
-   Jalankan: node test/patch-test.js   (dari folder ulartangga-improved/)
+   Jalankan: node test/patch-test.js   (dari root repo)
 */
 'use strict';
 const fs = require('fs');
