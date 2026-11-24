@@ -16,7 +16,7 @@ function toggleMute() {
   sfxMuted = !sfxMuted;
   const btn = document.getElementById('btn-mute');
   btn.textContent = sfxMuted ? '🔇' : '🔊';
-  btn.style.color  = sfxMuted ? '#f43f5e' : '#aaa';
+  btn.style.color  = sfxMuted ? '#F4514B' : '#4B4463';
   if (!sfxMuted) sfx.pop(0.05);
 }
 
@@ -220,8 +220,8 @@ const SPECIAL_CELLS = {
 let currentMood = 'romantis'; // 'romantis' | 'playful' | 'liar'
 
 let PLAYERS = [
-  {name:"Pemain 1", colorHex:"#f472b6"},
-  {name:"Pemain 2", colorHex:"#fb923c"},
+  {name:"Pemain 1", colorHex:"#F4514B"},
+  {name:"Pemain 2", colorHex:"#F5A03C"},
 ];
 
 // ─── GAME STATE (consolidated) ───────────────────────────────────
@@ -446,15 +446,16 @@ function setTodBody(parts) {
 }
 
 // Safely render a challenge string into a target element without innerHTML.
-// The challenge text (incl. user-added custom challenges) is escaped first, so
-// markup such as <img onerror> renders as literal text. {AKU}/{KAMU} placeholders
-// become styled <strong> elements built via safe DOM construction.
+// Every fragment is appended as a text node, so markup such as <img onerror>
+// renders as literal text. {AKU}/{KAMU} placeholders become styled <strong>
+// elements built via safe DOM construction.
 function renderTodChallenge(targetEl, challenge, { akuName, kamuName, akuColor, kamuColor }) {
   if (!targetEl) return;
   targetEl.textContent = '';
   const frag = document.createDocumentFragment();
-  const safe = escapeHtml(challenge); // neutralize any user-injected markup
-  const parts = safe.split(/(\{AKU\}|\{KAMU\})/g);
+  // No escaping needed: every fragment is appended as a text node, and text
+  // nodes never parse markup. Escaping here would print &#039; literally.
+  const parts = challenge.split(/(\{AKU\}|\{KAMU\})/g);
   parts.forEach(part => {
     if (part === '{AKU}') {
       const s = document.createElement('strong');
@@ -509,19 +510,14 @@ function sanitizeFilename(raw) {
     .slice(0, 60) || 'game';
 }
 
-// Validates and sanitizes a player name: trims, escapes HTML entities, length limit.
+// Validates a player name: trims and caps length. Stored raw and escaped only
+// where it meets innerHTML — escaping here would double-escape every
+// textContent sink (HUD, log, TOD challenge) into literal &#039; etc.
 function validatePlayerName(raw) {
   if (typeof raw !== 'string') raw = '';
-  let name = raw.trim();
-  if (!name || name.length < 1) return 'Kamu';
-  if (name.length > 20) name = name.slice(0, 20);
-  // Escape HTML to neutralize any injected markup
-  return name
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  const name = raw.trim();
+  if (!name) return 'Kamu';
+  return name.slice(0, 20);
 }
 
 // ─── FULL GAME STATE RESET ──────────────────────────────────────────
@@ -591,9 +587,9 @@ function startGame() {
 
   // Show mood badge
   const MOOD_META = {
-    romantis: { emoji:'💕', label:'Romantic', color:'#f472b6' },
-    playful:  { emoji:'😜', label:'Teasing',  color:'#fb923c' },
-    liar:     { emoji:'🔥', label:'Spicy',    color:'#ef4444' },
+    romantis: { emoji:'💕', label:'Romantic', color:'#F4514B' },
+    playful:  { emoji:'😜', label:'Teasing',  color:'#F5A03C' },
+    liar:     { emoji:'🔥', label:'Spicy',    color:'#C0392B' },
   };
   const m = MOOD_META[currentMood];
   const mb0 = document.getElementById('mood-badge-bar');
@@ -790,26 +786,26 @@ function makeLadder(from, to, gIdx) {
     // Dark underside
     rungs+=`<line x1="${(ax+uy*0.25).toFixed(2)}" y1="${(ay+uy*0.25+0.12).toFixed(2)}"
                   x2="${(bx+uy*0.25).toFixed(2)}" y2="${(by+uy*0.25+0.12).toFixed(2)}"
-                  stroke="#78350f" stroke-width="1.35" stroke-linecap="round"/>`;
+                  stroke="#B8890E" stroke-width="1.35" stroke-linecap="round"/>`;
     // Main rung face
     rungs+=`<line x1="${ax.toFixed(2)}" y1="${ay.toFixed(2)}"
                   x2="${bx.toFixed(2)}" y2="${by.toFixed(2)}"
-                  stroke="#d97706" stroke-width="1.05" stroke-linecap="round"/>`;
+                  stroke="#F7C083" stroke-width="1.05" stroke-linecap="round"/>`;
     // Top highlight
     rungs+=`<line x1="${(ax-uy*0.18).toFixed(2)}" y1="${(ay-uy*0.18).toFixed(2)}"
                   x2="${(bx-uy*0.18).toFixed(2)}" y2="${(by-uy*0.18).toFixed(2)}"
-                  stroke="#fef08a" stroke-width="0.32" stroke-linecap="round" opacity="0.75"/>`;
+                  stroke="#FFF3CF" stroke-width="0.32" stroke-linecap="round" opacity="0.75"/>`;
     // Wood grain mark on rung
     if (rl>2.5) {
       const mx=(ax+bx)/2, my=(ay+by)/2;
       rungs+=`<line x1="${(mx-px*0.35).toFixed(2)}" y1="${(my-py*0.35).toFixed(2)}"
                     x2="${(mx+px*0.06).toFixed(2)}" y2="${(my+py*0.06).toFixed(2)}"
-                    stroke="#92400e" stroke-width="0.28" opacity="0.55"/>`;
+                    stroke="#C97716" stroke-width="0.28" opacity="0.55"/>`;
     }
     // Metal bolt at each end
     for (const [boltX,boltY] of [[ax,ay],[bx,by]]) {
-      rungs+=`<circle cx="${boltX.toFixed(2)}" cy="${boltY.toFixed(2)}" r="0.5"  fill="#6b2d0f" opacity="0.92"/>`;
-      rungs+=`<circle cx="${boltX.toFixed(2)}" cy="${boltY.toFixed(2)}" r="0.32" fill="#fbbf24" opacity="0.85"/>`;
+      rungs+=`<circle cx="${boltX.toFixed(2)}" cy="${boltY.toFixed(2)}" r="0.5"  fill="#A25500" opacity="0.92"/>`;
+      rungs+=`<circle cx="${boltX.toFixed(2)}" cy="${boltY.toFixed(2)}" r="0.32" fill="#FFD166" opacity="0.85"/>`;
       rungs+=`<circle cx="${(boltX-0.1).toFixed(2)}" cy="${(boltY-0.1).toFixed(2)}" r="0.1" fill="white" opacity="0.6"/>`;
     }
   }
@@ -826,10 +822,10 @@ function makeLadder(from, to, gIdx) {
   return `<g opacity="0.93">
   <defs>
     <linearGradient id="${lid}l" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="#78350f"/>
-      <stop offset="35%"  stop-color="#b45309"/>
-      <stop offset="65%"  stop-color="#d97706"/>
-      <stop offset="100%" stop-color="#92400e"/>
+      <stop offset="0%"   stop-color="#B8890E"/>
+      <stop offset="35%"  stop-color="#F5A03C"/>
+      <stop offset="65%"  stop-color="#F7C083"/>
+      <stop offset="100%" stop-color="#C97716"/>
     </linearGradient>
   </defs>
 
@@ -844,18 +840,18 @@ function makeLadder(from, to, gIdx) {
   <!-- Rail dark side (depth edge) -->
   <line x1="${(lx1+px*0.32).toFixed(2)}" y1="${(ly1+py*0.32).toFixed(2)}"
         x2="${(lx2+px*0.32).toFixed(2)}" y2="${(ly2+py*0.32).toFixed(2)}"
-        stroke="#6b2d0f" stroke-width="2.1" stroke-linecap="round"/>
+        stroke="#A25500" stroke-width="2.1" stroke-linecap="round"/>
   <line x1="${(rx1-px*0.32).toFixed(2)}" y1="${(ry1-py*0.32).toFixed(2)}"
         x2="${(rx2-px*0.32).toFixed(2)}" y2="${(ry2-py*0.32).toFixed(2)}"
-        stroke="#6b2d0f" stroke-width="2.1" stroke-linecap="round"/>
+        stroke="#A25500" stroke-width="2.1" stroke-linecap="round"/>
 
   <!-- Rail main face -->
   <line x1="${lx1.toFixed(2)}" y1="${ly1.toFixed(2)}"
         x2="${lx2.toFixed(2)}" y2="${ly2.toFixed(2)}"
-        stroke="#b45309" stroke-width="1.7" stroke-linecap="round"/>
+        stroke="#F5A03C" stroke-width="1.7" stroke-linecap="round"/>
   <line x1="${rx1.toFixed(2)}" y1="${ry1.toFixed(2)}"
         x2="${rx2.toFixed(2)}" y2="${ry2.toFixed(2)}"
-        stroke="#b45309" stroke-width="1.7" stroke-linecap="round"/>
+        stroke="#F5A03C" stroke-width="1.7" stroke-linecap="round"/>
 
   <!-- Rail highlight edge -->
   <line x1="${(lx1-px*0.28).toFixed(2)}" y1="${(ly1-py*0.28).toFixed(2)}"
@@ -870,34 +866,34 @@ function makeLadder(from, to, gIdx) {
     const tv=(i+0.5)/(Math.round(len/1.8)+1);
     const gax=lx1+(lx2-lx1)*tv+px*0.05, gay=ly1+(ly2-ly1)*tv+py*0.05;
     const gbx=rx1+(rx2-rx1)*tv-px*0.05, gby=ry1+(ry2-ry1)*tv-py*0.05;
-    return `<line x1="${gax.toFixed(2)}" y1="${gay.toFixed(2)}" x2="${(gax+px*0.55).toFixed(2)}" y2="${(gay+py*0.55).toFixed(2)}" stroke="#92400e" stroke-width="0.22" opacity="0.45"/>
-            <line x1="${gbx.toFixed(2)}" y1="${gby.toFixed(2)}" x2="${(gbx-px*0.55).toFixed(2)}" y2="${(gby-py*0.55).toFixed(2)}" stroke="#92400e" stroke-width="0.22" opacity="0.45"/>`;
+    return `<line x1="${gax.toFixed(2)}" y1="${gay.toFixed(2)}" x2="${(gax+px*0.55).toFixed(2)}" y2="${(gay+py*0.55).toFixed(2)}" stroke="#C97716" stroke-width="0.22" opacity="0.45"/>
+            <line x1="${gbx.toFixed(2)}" y1="${gby.toFixed(2)}" x2="${(gbx-px*0.55).toFixed(2)}" y2="${(gby-py*0.55).toFixed(2)}" stroke="#C97716" stroke-width="0.22" opacity="0.45"/>`;
   }).join('')}
 
   <!-- Wood knots -->
-  <ellipse cx="${kx.toFixed(2)}"  cy="${ky.toFixed(2)}"  rx="0.55" ry="0.28" fill="#6b2d0f" opacity="0.5"/>
-  <ellipse cx="${kx2.toFixed(2)}" cy="${ky2.toFixed(2)}" rx="0.55" ry="0.28" fill="#6b2d0f" opacity="0.5"/>
+  <ellipse cx="${kx.toFixed(2)}"  cy="${ky.toFixed(2)}"  rx="0.55" ry="0.28" fill="#A25500" opacity="0.5"/>
+  <ellipse cx="${kx2.toFixed(2)}" cy="${ky2.toFixed(2)}" rx="0.55" ry="0.28" fill="#A25500" opacity="0.5"/>
 
   <!-- Rungs -->
   ${rungs}
 
   <!-- Base cap (bottom foot) -->
   <ellipse cx="${f.x.toFixed(2)}" cy="${(f.y+0.15).toFixed(2)}" rx="1.55" ry="0.6" fill="#5c1f07" opacity="0.8"/>
-  <ellipse cx="${f.x.toFixed(2)}" cy="${f.y.toFixed(2)}"        rx="1.5"  ry="0.55" fill="#b45309"/>
-  <ellipse cx="${f.x.toFixed(2)}" cy="${(f.y-0.2).toFixed(2)}"  rx="1.3"  ry="0.42" fill="#fbbf24" opacity="0.9"/>
+  <ellipse cx="${f.x.toFixed(2)}" cy="${f.y.toFixed(2)}"        rx="1.5"  ry="0.55" fill="#F5A03C"/>
+  <ellipse cx="${f.x.toFixed(2)}" cy="${(f.y-0.2).toFixed(2)}"  rx="1.3"  ry="0.42" fill="#FFD166" opacity="0.9"/>
   <line x1="${(f.x-1.0).toFixed(2)}" y1="${(f.y-0.18).toFixed(2)}"
         x2="${(f.x+1.0).toFixed(2)}" y2="${(f.y-0.18).toFixed(2)}"
         stroke="#fef9c3" stroke-width="0.25" opacity="0.6"/>
 
   <!-- Top cap -->
   <ellipse cx="${t.x.toFixed(2)}" cy="${(t.y+0.15).toFixed(2)}" rx="1.55" ry="0.6" fill="#5c1f07" opacity="0.8"/>
-  <ellipse cx="${t.x.toFixed(2)}" cy="${t.y.toFixed(2)}"        rx="1.5"  ry="0.55" fill="#b45309"/>
-  <ellipse cx="${t.x.toFixed(2)}" cy="${(t.y-0.2).toFixed(2)}"  rx="1.3"  ry="0.42" fill="#fbbf24" opacity="0.9"/>
+  <ellipse cx="${t.x.toFixed(2)}" cy="${t.y.toFixed(2)}"        rx="1.5"  ry="0.55" fill="#F5A03C"/>
+  <ellipse cx="${t.x.toFixed(2)}" cy="${(t.y-0.2).toFixed(2)}"  rx="1.3"  ry="0.42" fill="#FFD166" opacity="0.9"/>
 
   <!-- Heart ornament -->
-  <path d="${heartPath}" fill="#be123c" opacity="0.95"/>
-  <path d="${heartPath}" fill="#f43f5e" opacity="0.85"/>
-  <path d="${heartPath}" fill="none" stroke="#fda4af" stroke-width="0.22" opacity="0.7"/>
+  <path d="${heartPath}" fill="#C0392B" opacity="0.95"/>
+  <path d="${heartPath}" fill="#F4514B" opacity="0.8"/>
+  <path d="${heartPath}" fill="none" stroke="#F6ECD8" stroke-width="0.22" opacity="0.6"/>
   <path d="M${hx},${(hy+0.55).toFixed(2)} C${hx},${hy} ${(hx-0.5).toFixed(2)},${(hy-0.15).toFixed(2)} ${hx},${(hy+0.55).toFixed(2)}Z"
         fill="rgba(255,255,255,0.22)"/>
 </g>`;
@@ -967,33 +963,33 @@ function makeSnake(from, to, gIdx) {
   return `<g opacity="0.93">
   <defs>
     <radialGradient id="${sid}h" cx="35%" cy="35%" r="65%">
-      <stop offset="0%"   stop-color="#fb7185"/>
-      <stop offset="45%"  stop-color="#be123c"/>
-      <stop offset="100%" stop-color="#881337"/>
+      <stop offset="0%"   stop-color="#F27A52"/>
+      <stop offset="45%"  stop-color="#C0392B"/>
+      <stop offset="100%" stop-color="#8E2F27"/>
     </radialGradient>
     <radialGradient id="${sid}e" cx="35%" cy="30%" r="70%">
-      <stop offset="0%"   stop-color="#fcd34d"/>
-      <stop offset="60%"  stop-color="#d97706"/>
-      <stop offset="100%" stop-color="#92400e"/>
+      <stop offset="0%"   stop-color="#FFD166"/>
+      <stop offset="60%"  stop-color="#F7C083"/>
+      <stop offset="100%" stop-color="#C97716"/>
     </radialGradient>
   </defs>
 
   <path d="${bodyPath}" stroke="rgba(0,0,0,0.4)" stroke-width="3.8" fill="none" stroke-linecap="round"/>
-  <path d="${bodyPath}" stroke="#9f1239" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-  <path d="${bodyPath}" stroke="#fda4af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-dasharray="1.8 2.4" opacity="0.6"/>
+  <path d="${bodyPath}" stroke="#A3271F" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+  <path d="${bodyPath}" stroke="#FBA6A2" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-dasharray="1.8 2.4" opacity="0.6"/>
   ${scales}
 
   <circle cx="${(f.x+0.2).toFixed(2)}" cy="${(f.y+0.3).toFixed(2)}" r="2.9" fill="rgba(0,0,0,0.4)"/>
-  <circle cx="${f.x.toFixed(2)}" cy="${f.y.toFixed(2)}" r="2.8" fill="#881337"/>
+  <circle cx="${f.x.toFixed(2)}" cy="${f.y.toFixed(2)}" r="2.8" fill="#8E2F27"/>
   <circle cx="${f.x.toFixed(2)}" cy="${f.y.toFixed(2)}" r="2.4" fill="url(#${sid}h)"/>
   <ellipse cx="${sheenX.toFixed(2)}" cy="${sheenY.toFixed(2)}"
            rx="1.0" ry="0.55" fill="rgba(253,164,175,0.28)"
            transform="rotate(${sheenAngle.toFixed(1)} ${f.x.toFixed(2)} ${f.y.toFixed(2)})"/>
 
-  <circle cx="${nos1.x.toFixed(2)}" cy="${nos1.y.toFixed(2)}" r="0.28" fill="#4c0519" opacity="0.9"/>
-  <circle cx="${nos2.x.toFixed(2)}" cy="${nos2.y.toFixed(2)}" r="0.28" fill="#4c0519" opacity="0.9"/>
-  <circle cx="${(nos1.x-0.07).toFixed(2)}" cy="${(nos1.y-0.07).toFixed(2)}" r="0.09" fill="rgba(255,255,255,0.35)"/>
-  <circle cx="${(nos2.x-0.07).toFixed(2)}" cy="${(nos2.y-0.07).toFixed(2)}" r="0.09" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="${nos1.x.toFixed(2)}" cy="${nos1.y.toFixed(2)}" r="0.28" fill="#1B1633" opacity="0.9"/>
+  <circle cx="${nos2.x.toFixed(2)}" cy="${nos2.y.toFixed(2)}" r="0.28" fill="#1B1633" opacity="0.9"/>
+  <circle cx="${(nos1.x-0.07).toFixed(2)}" cy="${(nos1.y-0.07).toFixed(2)}" r="0.09" fill="rgba(246,236,216,0.4)"/>
+  <circle cx="${(nos2.x-0.07).toFixed(2)}" cy="${(nos2.y-0.07).toFixed(2)}" r="0.09" fill="rgba(246,236,216,0.4)"/>
 
   <circle cx="${e1.x.toFixed(2)}" cy="${e1.y.toFixed(2)}" r="0.78" fill="white"/>
   <circle cx="${e2.x.toFixed(2)}" cy="${e2.y.toFixed(2)}" r="0.78" fill="white"/>
@@ -1006,13 +1002,13 @@ function makeSnake(from, to, gIdx) {
 
   <line x1="${f.x.toFixed(2)}" y1="${f.y.toFixed(2)}"
         x2="${tongBase.x.toFixed(2)}" y2="${tongBase.y.toFixed(2)}"
-        stroke="#f43f5e" stroke-width="0.55" stroke-linecap="round"/>
+        stroke="#F4514B" stroke-width="0.55" stroke-linecap="round"/>
   <line x1="${tongBase.x.toFixed(2)}" y1="${tongBase.y.toFixed(2)}"
         x2="${tTip1.x.toFixed(2)}" y2="${tTip1.y.toFixed(2)}"
-        stroke="#f43f5e" stroke-width="0.5" stroke-linecap="round"/>
+        stroke="#F4514B" stroke-width="0.5" stroke-linecap="round"/>
   <line x1="${tongBase.x.toFixed(2)}" y1="${tongBase.y.toFixed(2)}"
         x2="${tTip2.x.toFixed(2)}" y2="${tTip2.y.toFixed(2)}"
-        stroke="#f43f5e" stroke-width="0.5" stroke-linecap="round"/>
+        stroke="#F4514B" stroke-width="0.5" stroke-linecap="round"/>
 </g>`;
 }
 // ─── PION SYSTEM ─────────────────────────────────────────────────
@@ -1112,7 +1108,7 @@ function animateSteps(playerIdx, from, to, callback) {
     const jumpScale = 1 + 0.45 * Math.sin(progress * Math.PI);
     const jumpY = -10 * Math.sin(progress * Math.PI);
     el.style.transform = `scale(${jumpScale.toFixed(2)}) translateY(${jumpY.toFixed(1)}px)`;
-    el.style.filter = `drop-shadow(0 ${(6 + 8 * Math.sin(progress * Math.PI)).toFixed(0)}px 12px rgba(244,63,94,0.7)) brightness(${(1.2 + 0.3 * Math.sin(progress * Math.PI)).toFixed(2)})`;
+    el.style.filter = `drop-shadow(0 ${(6 + 8 * Math.sin(progress * Math.PI)).toFixed(0)}px 10px rgba(27,22,51,0.45)) brightness(${(1.2 + 0.3 * Math.sin(progress * Math.PI)).toFixed(2)})`;
     setTimeout(() => {
       document.getElementById(`ppos-${playerIdx}`).textContent = `Kotak ${cur}`;
       if (step < steps) {
@@ -1146,11 +1142,11 @@ function animateSnakeLadder(playerIdx, from, to, callback) {
     // Snake: spin + shrink + red tint
     el.style.transition = `transform 0.25s cubic-bezier(0.4,0,0.2,1), filter 0.25s ease`;
     el.style.transform = 'scale(1.3) rotate(-20deg) translateY(-8px)';
-    el.style.filter = 'drop-shadow(0 0 16px #f43f5e) brightness(1.5) hue-rotate(10deg)';
+    el.style.filter = 'drop-shadow(0 0 14px #C0392B) brightness(1.3)';
     setTimeout(() => {
       el.style.transition = `left ${dur}ms cubic-bezier(0.55,0,0.45,1), top ${dur}ms cubic-bezier(0.55,0,0.45,1), transform ${dur}ms cubic-bezier(0.4,0,0.6,1), filter 0.4s ease`;
       el.style.transform = 'scale(0.7) rotate(25deg)';
-      el.style.filter = 'drop-shadow(0 2px 10px #f43f5e) brightness(0.75) saturate(1.5)';
+      el.style.filter = 'drop-shadow(0 2px 8px #C0392B) brightness(0.85) saturate(1.3)';
       movePionTo(playerIdx, to, false);
       pulseCell(to);
       document.getElementById(`ppos-${playerIdx}`).textContent = `Kotak ${to}`;
@@ -1264,7 +1260,7 @@ function updateUI() {
   const canRoll = phase === 'roll' && !rolling;
   btn.disabled = !canRoll;
   const c = PLAYERS[turn].colorHex;
-  btn.style.background = canRoll ? `linear-gradient(135deg, ${c}, ${c}88)` : 'rgba(255,255,255,0.08)';
+  btn.style.background = canRoll ? `linear-gradient(135deg, ${c}, ${c}88)` : 'rgba(246,236,216,0.12)';
   btn.textContent = rolling ? '🎲 Rolling...' : canRoll ? '🎲 Lempar!' : '💕 TOD dulu...';
 
   // Posisikan token — jaga supaya dua pemain di kotak sama tetap terlihat berdua
@@ -1318,7 +1314,7 @@ function renderDice(val) {
   const c = PLAYERS[turn].colorHex;
   const dots = DICE_DOTS[val].map(([cx,cy]) =>
     `<circle cx="${cx}" cy="${cy}" r="8" fill="${c}"/>`).join('');
-  wrap.innerHTML = `<rect rx="14" width="100" height="100" fill="#1a0f18"/><rect rx="12" x="3" y="3" width="94" height="94" fill="#2a0f1e" stroke="${c}" stroke-width="2" stroke-opacity="0.5"/>${dots}`;
+  wrap.innerHTML = `<rect rx="2" width="100" height="100" fill="#1C1636"/><rect rx="1" x="3" y="3" width="94" height="94" fill="#16112B" stroke="${c}" stroke-width="2" stroke-opacity="0.6"/>${dots}`;
 }
 
 // ─── TIMER ───────────────────────────────────────────────────────
@@ -1374,17 +1370,17 @@ function startTimer(level, overrideSecs) {
     ring.style.strokeDashoffset = (circumference * (1 - ratio)).toFixed(2);
 
     if (timerSecondsLeft <= 10) {
-      ring.style.stroke = '#ef4444';
-      text.style.fill   = '#ef4444';
+      ring.style.stroke = '#F4514B';
+      text.style.fill   = '#F4514B';
       timerEl.classList.add('timer-urgent');
       sfx.timerUrgent(); if(timerSecondsLeft<=5) vib(50);
     } else if (timerSecondsLeft <= 20) {
-      ring.style.stroke = '#fb923c';
-      text.style.fill   = '#fb923c';
+      ring.style.stroke = '#F5A03C';
+      text.style.fill   = '#F5A03C';
       sfx.timerTick();
     } else {
-      ring.style.stroke = '#10b981';
-      text.style.fill   = 'white';
+      ring.style.stroke = '#2E9E8F';
+      text.style.fill   = '#F6ECD8';
       sfx.timerTick();
     }
     text.textContent = timerSecondsLeft;
@@ -1418,7 +1414,7 @@ function showTimerIdle(secs) {
   timerEl.classList.add('visible');
   timerEl.classList.remove('timer-urgent');
   if (hint)  hint.textContent = secs ? `⏱️ ${formatTimerHint(secs)}` : '⏱️ Timer siap';
-  if (text)  { text.textContent = secs ? (secs >= 60 ? Math.floor(secs/60)+'m' : secs+'s') : '–'; text.style.fill = 'rgba(255,255,255,0.4)'; }
+  if (text)  { text.textContent = secs ? (secs >= 60 ? Math.floor(secs/60)+'m' : secs+'s') : '–'; text.style.fill = 'rgba(246,236,216,0.45)'; }
   if (ring)  { ring.style.stroke = 'rgba(255,255,255,0.2)'; ring.style.strokeDashoffset = '0'; }
   if (startBtn) startBtn.style.display = '';
   if (skipBtn)  skipBtn.style.display  = '';
@@ -1433,7 +1429,7 @@ function manualStartTimer() {
   if (startBtn) startBtn.style.display = 'none';
   if (skipBtn)  skipBtn.style.display  = 'none';
   const text = document.getElementById('timer-text');
-  if (text) text.style.fill = 'white';
+  if (text) text.style.fill = '#F6ECD8';
   startTimer(null, secs);
 }
 
@@ -1457,10 +1453,10 @@ function stopTimer() {
   const ring = document.getElementById('timer-ring');
   if (ring) {
     ring.style.strokeDashoffset = '0';
-    ring.style.stroke = '#10b981';
+    ring.style.stroke = '#2E9E8F';
   }
   const text = document.getElementById('timer-text');
-  if (text) { text.textContent = ''; text.style.fill = 'white'; }
+  if (text) { text.textContent = ''; text.style.fill = '#F6ECD8'; }
 }
 
 // ─── TOD MODAL ───────────────────────────────────────────────────
@@ -1523,9 +1519,9 @@ function setLevelUI(level) {
   const cls    = { mild:'level-mild', medium:'level-medium', hot:'level-hot' };
   const adaptDir = window._adaptedDir;
   const adaptBadge = adaptDir === 'up'
-    ? `<span style="font-size:10px;background:rgba(16,185,129,0.25);color:#34d399;border:1px solid #10b981;border-radius:8px;padding:1px 6px;margin-left:6px;font-weight:900">🔥 NAIK</span>`
+    ? `<span style="font-size:10px;background:rgba(46,158,143,0.22);color:#8FDCD1;border:1px solid #2E9E8F;border-radius:2px;padding:1px 6px;margin-left:6px;font-weight:900">🔥 NAIK</span>`
     : adaptDir === 'down'
-    ? `<span style="font-size:10px;background:rgba(99,102,241,0.25);color:#a5b4fc;border:1px solid #6366f1;border-radius:8px;padding:1px 6px;margin-left:6px;font-weight:900">😌 TURUN</span>`
+    ? `<span style="font-size:10px;background:rgba(76,141,217,0.22);color:#A8CAF2;border:1px solid #4C8DD9;border-radius:2px;padding:1px 6px;margin-left:6px;font-weight:900">😌 TURUN</span>`
     : '';
   document.getElementById('level-label').innerHTML = labels[level] + adaptBadge;
   document.getElementById('level-label').className   = `level-label ${cls[level]}`;
@@ -1609,13 +1605,13 @@ function showJokerCell(sq, level) {
   stopTimer(); // no timer for joker cells
   flipContent(() => { document.getElementById('tod-body').innerHTML = `
     <div class="tod-type-badge">
-      <span class="tod-type-pill" style="background:rgba(252,211,77,0.2);border:1.5px solid #fcd34d;color:#fcd34d">🃏 JOKER</span>
+      <span class="tod-type-pill" style="background:rgba(255,209,102,0.22);border:1.5px solid #F5A03C;color:#FFD166">🃏 JOKER</span>
     </div>
     <div class="tod-challenge" style="font-size:15px;line-height:1.7">
       <div style="font-size:40px;margin-bottom:12px;animation:jokerPop 0.5s ease">🃏</div>
-      Kamu dapat <strong style="color:#fcd34d">Joker Token</strong>!<br/>
+      Kamu dapat <strong style="color:#FFD166">Joker Token</strong>!<br/>
       Simpan untuk skip tantangan gratis kapanpun.<br/>
-      <small style="color:#aaa;font-size:13px">Total joker kamu: ${escapeHtml(String(jokerCount[turn]))}x</small>
+      <small style="color:#B3AAC6;font-size:13px">Total joker kamu: ${escapeHtml(String(jokerCount[turn]))}x</small>
     </div>
     <div class="tod-action-btns" style="grid-template-columns:1fr">
       <button class="btn-done" onclick="todDone(true)">✅ Sip, lanjut!</button>
@@ -1625,8 +1621,8 @@ function showJokerCell(sq, level) {
 function showDuoChallenge(sq, level) {
   const duoPool = getPool().duo;
   const duoChosen = pickUnused(duoPool, usedDuoSet);
-  const aku  = escapeHtml(PLAYERS[turn].name);
-  const kamu = escapeHtml(PLAYERS[(turn+1)%2].name);
+  const aku  = PLAYERS[turn].name;
+  const kamu = PLAYERS[(turn+1)%2].name;
   const p0 = PLAYERS[turn];
   const p1 = PLAYERS[(turn+1)%2];
   // DUO = dare-like, so start timer
@@ -1667,22 +1663,22 @@ function showWildChoice(sq, level) {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <button onclick="resolveWild('truth',${sq},'${level}')" style="
-        padding:20px 12px;border:none;border-radius:16px;color:white;
-        background:linear-gradient(135deg,#6366f1,#8b5cf6);
-        font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;
+        padding:20px 12px;border:2px solid #1B1633;border-radius:2px;color:#F6ECD8;
+        background:#2E9E8F;
+        font-family:'Karla',system-ui,sans-serif;font-weight:800;font-size:16px;
         cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;
-        box-shadow:0 6px 24px rgba(99,102,241,0.35)">
-        <span style="font-size:28px">🤫</span>TRUTH
-        <span style="font-size:11px;opacity:.8">Jujur saja</span>
+        box-shadow:4px 4px 0 #9268C8">
+        <span style="font-size:28px">🤫</span>Truth
+        <span style="font-size:11px;opacity:.85">Jujur saja</span>
       </button>
       <button onclick="resolveWild('dare',${sq},'${level}')" style="
-        padding:20px 12px;border:none;border-radius:16px;color:white;
-        background:linear-gradient(135deg,#f43f5e,#fb923c);
-        font-family:'Nunito',sans-serif;font-weight:900;font-size:17px;
+        padding:20px 12px;border:2px solid #1B1633;border-radius:2px;color:#F6ECD8;
+        background:#F4514B;
+        font-family:'Karla',system-ui,sans-serif;font-weight:800;font-size:16px;
         cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;
-        box-shadow:0 6px 24px rgba(244,63,94,0.35)">
-        <span style="font-size:28px">🔥</span>DARE
-        <span style="font-size:11px;opacity:.8">Berani kan?</span>
+        box-shadow:4px 4px 0 #F5A03C">
+        <span style="font-size:28px">🔥</span>Dare
+        <span style="font-size:11px;opacity:.85">Berani kan?</span>
       </button>
     </div>`; });
 }
@@ -1728,7 +1724,7 @@ function renderChallenge(type, sq, level) {
             const p0 = PLAYERS[turn];
             const p1 = PLAYERS[(turn+1)%2];
             renderTodChallenge(body.querySelector('.tod-challenge'), customTruths[ci], {
-              akuName: escapeHtml(p0.name), kamuName: escapeHtml(p1.name),
+              akuName: p0.name, kamuName: p1.name,
               akuColor: p0.colorHex, kamuColor: p1.colorHex,
             });
           });
@@ -1768,7 +1764,7 @@ function renderChallenge(type, sq, level) {
             const p0 = PLAYERS[turn];
             const p1 = PLAYERS[(turn+1)%2];
             renderTodChallenge(body.querySelector('.tod-challenge'), customDares[ci], {
-              akuName: escapeHtml(p0.name), kamuName: escapeHtml(p1.name),
+              akuName: p0.name, kamuName: p1.name,
               akuColor: p0.colorHex, kamuColor: p1.colorHex,
             });
           });
@@ -1782,8 +1778,8 @@ function renderChallenge(type, sq, level) {
   const activeSet = type === 'truth' ? usedTruthSet[currentMood] : usedDareSet[currentMood];
   const chosenText = pickUnused(pool, activeSet);
 
-  const aku  = escapeHtml(PLAYERS[turn].name);
-  const kamu = escapeHtml(PLAYERS[(turn+1)%2].name);
+  const aku  = PLAYERS[turn].name;
+  const kamu = PLAYERS[(turn+1)%2].name;
   const p0 = PLAYERS[turn];
   const p1 = PLAYERS[(turn+1)%2];
 
@@ -1873,7 +1869,7 @@ function resolveAfterTOD(completed, isJoker = false, freeSkip = false) {
       // 🎊 Confetti on streak milestones (3, 5, 7...)
       const streak = stats[turn].curStreak;
       if (streak >= 3 && streak % 2 === 1) {
-        const streakColors = ['#f43f5e','#fcd34d','#f472b6','#fff'];
+        const streakColors = ['#F4514B','#FFD166','#F5A03C','#F6ECD8'];
         setTimeout(() => launchConfetti(
           window.innerWidth * (turn === 0 ? 0.25 : 0.75),
           window.innerHeight * 0.45,
@@ -2045,7 +2041,7 @@ function confirmReset() {
   buildBoard();
   drawSnakesLadders();
   initPions();
-  document.getElementById('dice-wrap').innerHTML = `<rect rx="14" width="100" height="100" fill="#2a0f1e"/><text x="50" y="66" text-anchor="middle" font-size="44">🎲</text>`;
+  document.getElementById('dice-wrap').innerHTML = `<rect rx="2" width="100" height="100" fill="#1C1636"/><text x="50" y="66" text-anchor="middle" font-size="44">🎲</text>`;
   updateUI();
 }
 
@@ -2101,8 +2097,8 @@ function buildStatsHTML(isWinner) {
     <div class="stats-grid">
       <div class="stat-block"><div class="stat-num" style="color:${c0}">${s0.done}</div><div class="stat-label">${n0} selesai</div></div>
       <div class="stat-block"><div class="stat-num" style="color:${c1}">${s1.done}</div><div class="stat-label">${n1} selesai</div></div>
-      <div class="stat-block"><div class="stat-num" style="color:#9ca3af">${s0.skipped}</div><div class="stat-label">${n0} skip</div></div>
-      <div class="stat-block"><div class="stat-num" style="color:#9ca3af">${s1.skipped}</div><div class="stat-label">${n1} skip</div></div>
+      <div class="stat-block"><div class="stat-num" style="color:#857C9B">${s0.skipped}</div><div class="stat-label">${n0} skip</div></div>
+      <div class="stat-block"><div class="stat-num" style="color:#857C9B">${s1.skipped}</div><div class="stat-label">${n1} skip</div></div>
     </div>
     <div class="stats-section-title">Tingkat Keberanian</div>
     <div class="stat-bar-wrap">
@@ -2114,16 +2110,16 @@ function buildStatsHTML(isWinner) {
       <div class="stat-bar" style="width:${pct1}%;background:${c1}"></div>
     </div>
     <div class="stats-grid" style="margin-top:14px">
-      <div class="stat-block"><div class="stat-num" style="color:#a5b4fc">${s0.truths+s1.truths}</div><div class="stat-label">Total Truth</div></div>
-      <div class="stat-block"><div class="stat-num" style="color:#fda4af">${s0.dares+s1.dares}</div><div class="stat-label">Total Dare</div></div>
-      <div class="stat-block"><div class="stat-num" style="color:#67e8f9">${s0.duos+s1.duos}</div><div class="stat-label">Tantangan Duo</div></div>
-      <div class="stat-block"><div class="stat-num" style="color:#fcd34d">${totalRounds}</div><div class="stat-label">Total Giliran</div></div>
+      <div class="stat-block"><div class="stat-num" style="color:#2E9E8F">${s0.truths+s1.truths}</div><div class="stat-label">Total Truth</div></div>
+      <div class="stat-block"><div class="stat-num" style="color:#F4514B">${s0.dares+s1.dares}</div><div class="stat-label">Total Dare</div></div>
+      <div class="stat-block"><div class="stat-num" style="color:#4C8DD9">${s0.duos+s1.duos}</div><div class="stat-label">Tantangan Duo</div></div>
+      <div class="stat-block"><div class="stat-num" style="color:#FFD166">${totalRounds}</div><div class="stat-label">Total Giliran</div></div>
     </div>
     ${gameDurationSec > 0 ? `
-    <div style="margin-top:12px;text-align:center;padding:10px;background:rgba(244,114,182,0.07);border:1px solid rgba(244,114,182,0.2);border-radius:12px">
-      <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:3px;letter-spacing:1px">⏱️ DURASI PERMAINAN</div>
-      <div style="font-size:22px;font-weight:900;color:#f9a8d4;letter-spacing:2px">${document.getElementById('duration-display')?.textContent || '00:00'}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:2px">${formatDuration(gameDurationSec)}</div>
+    <div style="margin-top:12px;text-align:center;padding:10px;background:rgba(246,236,216,0.06);border:1px solid rgba(246,236,216,0.18);border-radius:3px">
+      <div style="font-size:11px;color:rgba(246,236,216,0.45);margin-bottom:3px;letter-spacing:1px">⏱️ Durasi permainan</div>
+      <div style="font-size:22px;font-weight:900;color:#F6ECD8;letter-spacing:2px">${document.getElementById('duration-display')?.textContent || '00:00'}</div>
+      <div style="font-size:11px;color:rgba(246,236,216,0.4);margin-top:2px">${formatDuration(gameDurationSec)}</div>
     </div>` : ''}`;
   const achs = getAchievements();
   if (achs.length > 0) {
@@ -2150,9 +2146,9 @@ function addLog(msg) {
 
 // ─── RECAP CARD (Canvas 2D — downloadable PNG) ───────────────────
 const MOOD_META = {
-  romantis: { emoji:'💕', label:'Romantic', color:'#f472b6', bg1:'#2a0820', bg2:'#1a0f18' },
-  playful:  { emoji:'😜', label:'Teasing',  color:'#fb923c', bg1:'#201208', bg2:'#180f0a' },
-  liar:     { emoji:'🔥', label:'Spicy',    color:'#ef4444', bg1:'#220808', bg2:'#180808' },
+  romantis: { emoji:'💕', label:'Romantic', color:'#F4514B', bg1:'#1C1636', bg2:'#16112B' },
+  playful:  { emoji:'😜', label:'Teasing',  color:'#F5A03C', bg1:'#1C1636', bg2:'#16112B' },
+  liar:     { emoji:'🔥', label:'Spicy',    color:'#C0392B', bg1:'#1C1636', bg2:'#16112B' },
 };
 
 function showRecap() {
@@ -2184,7 +2180,7 @@ function buildRecapCanvas() {
   // ── Background gradient ──
   const bgGrad = ctx.createLinearGradient(0,0,W,H);
   bgGrad.addColorStop(0, m.bg1);
-  bgGrad.addColorStop(0.5, '#0f0810');
+  bgGrad.addColorStop(0.5, '#0E0A1C');
   bgGrad.addColorStop(1, m.bg2);
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0,0,W,H);
@@ -2224,10 +2220,10 @@ function buildRecapCanvas() {
 
   // ── Header: title ──
   ctx.textAlign = 'center';
-  ctx.font = 'bold 11px Nunito, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = 'bold 11px Karla, system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(246,236,216,0.4)';
   ctx.fillText('TRUTH OR DARE • FOR COUPLES', W/2, 28);
-  ctx.font = '11px Nunito, sans-serif';
+  ctx.font = '11px Karla, system-ui, sans-serif';
   ctx.fillStyle = m.color;
   ctx.fillText(`${m.emoji} Mode ${m.label.toUpperCase()}`, W/2, 48);
 
@@ -2236,21 +2232,24 @@ function buildRecapCanvas() {
   ctx.textAlign = 'center';
   ctx.fillText('🏆', W/2, 118);
 
-  ctx.font = 'bold 11px Nunito, sans-serif';
-  ctx.fillStyle = 'rgba(244,63,94,0.8)';
+  ctx.font = 'bold 11px Karla, system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(244,81,75,0.85)';
   ctx.letterSpacing = '4px';
   ctx.fillText('P E M E N A N G', W/2, 148);
+  // Canvas state persists across draws — unset the tracking or every later
+  // string (name, stats, footer) pays 4px per glyph and overflows the card.
+  ctx.letterSpacing = '0px';
 
   // Winner name with gradient
   const nameGrad = ctx.createLinearGradient(W/2-100, 0, W/2+100, 0);
   nameGrad.addColorStop(0, wp.colorHex);
-  nameGrad.addColorStop(1, '#fcd34d');
+  nameGrad.addColorStop(1, '#FFD166');
   ctx.fillStyle = nameGrad;
-  ctx.font = 'bold 32px Playfair Display, serif';
+  ctx.font = 'bold 32px Fraunces, Georgia, serif';
   ctx.fillText(wp.name, W/2, 185);
 
-  ctx.font = '13px Nunito, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '13px Karla, system-ui, sans-serif';
+  ctx.fillStyle = 'rgba(246,236,216,0.45)';
   ctx.fillText(`Sampai di kotak 100! 💋`, W/2, 208);
 
   // ── Divider ──
@@ -2264,31 +2263,31 @@ function buildRecapCanvas() {
 
   // ── Stats grid (2x2) ──
   function statBox(x,y,w,h,val,label,col) {
-    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.fillStyle = 'rgba(246,236,216,0.05)';
     roundRect(ctx, x, y, w, h, 12); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = 'rgba(246,236,216,0.12)';
     ctx.lineWidth = 1;
     roundRect(ctx, x, y, w, h, 12); ctx.stroke();
     ctx.fillStyle = col||'white';
-    ctx.font = 'bold 26px Nunito, sans-serif';
+    ctx.font = 'bold 26px Karla, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(val, x+w/2, y+h*0.55);
-    ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    ctx.font = '10px Nunito, sans-serif';
+    ctx.fillStyle = 'rgba(246,236,216,0.5)';
+    ctx.font = '10px Karla, system-ui, sans-serif';
     ctx.fillText(label.toUpperCase(), x+w/2, y+h*0.82);
   }
 
   const bw=78, bh=64, gap=8, startX=20, sy=236;
-  statBox(startX,        sy, bw, bh, s0.done+s1.done,    'Selesai',  '#10b981');
-  statBox(startX+bw+gap, sy, bw, bh, s0.skipped+s1.skipped,'Skip',  '#9ca3af');
-  statBox(startX+2*(bw+gap), sy, bw, bh, s0.truths+s1.truths,'Truth', '#a5b4fc');
-  statBox(startX+3*(bw+gap), sy, bw, bh, s0.dares+s1.dares,  'Dare',  '#fda4af');
+  statBox(startX,        sy, bw, bh, s0.done+s1.done,    'Selesai',  '#2E9E8F');
+  statBox(startX+bw+gap, sy, bw, bh, s0.skipped+s1.skipped,'Skip',  '#857C9B');
+  statBox(startX+2*(bw+gap), sy, bw, bh, s0.truths+s1.truths,'Truth', '#8FDCD1');
+  statBox(startX+3*(bw+gap), sy, bw, bh, s0.dares+s1.dares,  'Dare',  '#FBA6A2');
 
   // ── Player comparison bars ──
   const barY = 318;
   ctx.textAlign = 'left';
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.font = 'bold 10px Nunito, sans-serif';
+  ctx.fillStyle = 'rgba(246,236,216,0.6)';
+  ctx.font = 'bold 10px Karla, system-ui, sans-serif';
   ctx.fillText('PERBANDINGAN PEMAIN', 20, barY);
 
   function playerBar(y, player, s, isWinner) {
@@ -2298,12 +2297,12 @@ function buildRecapCanvas() {
 
     // Player name
     ctx.fillStyle = player.colorHex;
-    ctx.font = `bold 13px Nunito, sans-serif`;
+    ctx.font = `bold 13px Karla, system-ui, sans-serif`;
     ctx.textAlign = 'left';
     ctx.fillText((isWinner ? '🏆 ' : '') + player.name, 20, y+14);
 
     // Bar bg
-    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.fillStyle = 'rgba(246,236,216,0.1)';
     roundRect(ctx, 20, y+18, maxW, 10, 5); ctx.fill();
 
     // Bar fill
@@ -2314,8 +2313,8 @@ function buildRecapCanvas() {
     roundRect(ctx, 20, y+18, maxW * pct, 10, 5); ctx.fill();
 
     // Percent label
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.font = '10px Nunito, sans-serif';
+    ctx.fillStyle = 'rgba(246,236,216,0.6)';
+    ctx.font = '10px Karla, system-ui, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(`✅${s.done} ❌${s.skipped} (${Math.round(pct*100)}%)`, W-20, y+14);
   }
@@ -2327,24 +2326,24 @@ function buildRecapCanvas() {
   const achs = getAchievements().slice(0, 3);
   if (achs.length > 0) {
     const achY = 440;
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.font = 'bold 10px Nunito, sans-serif';
+    ctx.fillStyle = 'rgba(246,236,216,0.55)';
+    ctx.font = 'bold 10px Karla, system-ui, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText('PENCAPAIAN', 20, achY);
 
     achs.forEach((a, i) => {
       const ay = achY + 10 + i * 36;
-      ctx.fillStyle = 'rgba(255,255,255,0.04)';
+      ctx.fillStyle = 'rgba(246,236,216,0.05)';
       roundRect(ctx, 20, ay, W-40, 30, 8); ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth=1;
+      ctx.strokeStyle = 'rgba(246,236,216,0.1)'; ctx.lineWidth=1;
       roundRect(ctx, 20, ay, W-40, 30, 8); ctx.stroke();
       ctx.font = '15px serif';
       ctx.fillText(a.icon, 32, ay+20);
       ctx.fillStyle = 'white';
-      ctx.font = 'bold 11px Nunito, sans-serif';
+      ctx.font = 'bold 11px Karla, system-ui, sans-serif';
       ctx.fillText(a.name, 56, ay+14);
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      ctx.font = '10px Nunito, sans-serif';
+      ctx.fillStyle = 'rgba(246,236,216,0.55)';
+      ctx.font = '10px Karla, system-ui, sans-serif';
       ctx.fillText(a.text, 56, ay+26);
     });
   }
@@ -2360,8 +2359,8 @@ function buildRecapCanvas() {
   ctx.beginPath(); ctx.moveTo(0,footerY); ctx.lineTo(W,footerY); ctx.stroke();
 
   ctx.textAlign='center';
-  ctx.fillStyle='rgba(255,255,255,0.3)';
-  ctx.font='10px Nunito,sans-serif';
+  ctx.fillStyle='rgba(246,236,216,0.35)';
+  ctx.font='10px Karla, system-ui, sans-serif';
   ctx.fillText(`💋 Truth or Dare · ${totalRounds} giliran · ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}`, W/2, H-18);
 
   // Bottom border
@@ -2440,7 +2439,7 @@ function addCustomTantangan() {
   if (arr.length >= maxItems) {
     err.textContent = 'Maksimal 15 tantangan kustom per jenis.';
     err.style.display = 'block';
-    input.style.borderColor = '#f43f5e';
+    input.style.borderColor = '#F4514B';
     setTimeout(() => { input.style.borderColor = ''; err.style.display = 'none'; }, 1200);
     return;
   }
@@ -2503,8 +2502,8 @@ function showBeraniChallenge(sq, level) {
     return;
   }
   const beraniChosen = pickUnused(beraniPool, usedBeraniSet);
-  const aku   = escapeHtml(PLAYERS[turn].name);
-  const kamu  = escapeHtml(PLAYERS[(turn+1)%2].name);
+  const aku   = PLAYERS[turn].name;
+  const kamu  = PLAYERS[(turn+1)%2].name;
   const c0    = PLAYERS[turn].colorHex;
   const c1    = PLAYERS[(turn+1)%2].colorHex;
   currentTodType = 'berani';
@@ -2525,7 +2524,7 @@ function showBeraniChallenge(sq, level) {
       <button class="btn-done" onclick="todDone(true)">✅ Selesai!</button>
       <button class="btn-skip" onclick="todDone(false)" style="opacity:0.6;font-size:12px">⚠️ Tidak Berani (−3)</button>
     </div>
-    <div class="tod-rule" style="color:#fb923c">Kartu Berani — skip mundur 3 kotak! 💪</div>`;
+    <div class="tod-rule" style="color:#F5A03C">Kartu Berani — skip mundur 3 kotak! 💪</div>`;
     const p0 = PLAYERS[turn];
     const p1 = PLAYERS[(turn+1)%2];
     renderTodChallenge(body.querySelector('.tod-challenge'), beraniChosen, {
@@ -2696,7 +2695,7 @@ function getConfettiCtx() {
 let confettiParticles = [];
 let confettiRAF = null;
 
-const CONFETTI_COLORS = ['#f472b6','#f43f5e','#fcd34d','#a855f7','#fb923c','#fda4af','#c4b5fd','#fff','#fb7185','#f9a8d4'];
+const CONFETTI_COLORS = ['#F4514B','#F5A03C','#FFD166','#2E9E8F','#4C8DD9','#9268C8','#F6ECD8','#FBA6A2','#F7C083','#8FDCD1'];
 
 class ConfettiParticle {
   constructor(x, y, options={}) {
@@ -2876,9 +2875,9 @@ function validateSaveData(raw) {
   // Validate nested players
   if (!Array.isArray(d.players) || d.players.length !== 2) return { ok: false };
   out.players = d.players.map((p, i) => {
-    if (!p || typeof p !== 'object') return { name: i === 0 ? 'Kamu' : 'Dia', colorHex: i === 0 ? '#f472b6' : '#fb923c' };
+    if (!p || typeof p !== 'object') return { name: i === 0 ? 'Kamu' : 'Dia', colorHex: i === 0 ? '#F4514B' : '#F5A03C' };
     const name = typeof p.name === 'string' ? p.name.slice(0, MAX_NAME_LEN) : (i === 0 ? 'Kamu' : 'Dia');
-    const colorHex = typeof p.colorHex === 'string' && /^#[0-9a-fA-F]{3,6}$/.test(p.colorHex) ? p.colorHex : (i === 0 ? '#f472b6' : '#fb923c');
+    const colorHex = typeof p.colorHex === 'string' && /^#[0-9a-fA-F]{3,6}$/.test(p.colorHex) ? p.colorHex : (i === 0 ? '#F4514B' : '#F5A03C');
     return { name, colorHex };
   });
 
@@ -2999,27 +2998,27 @@ function checkSavedGame() {
     banner.id = 'resume-banner';
     banner.style.cssText = `
       position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
-      background:linear-gradient(135deg,#1a0f18,#2a0f1e);
-      border:1.5px solid rgba(244,63,94,0.5);border-radius:20px;
-      padding:12px 20px;z-index:600;display:flex;align-items:center;gap:12px;
-      box-shadow:0 8px 32px rgba(0,0,0,0.6);font-family:'Nunito',sans-serif;
+      background:#FBF4E4;
+      border:2px solid #1B1633;border-radius:2px;
+      padding:12px 16px;z-index:600;display:flex;align-items:center;gap:12px;
+      box-shadow:4px 4px 0 rgba(27,22,51,0.18);font-family:'Karla',system-ui,sans-serif;
       animation:slideUp .4s cubic-bezier(0.34,1.56,0.64,1);
       white-space:nowrap;
     `;
     const p0n = escapeHtml(d.players[0].name);
     const p1n = escapeHtml(d.players[1].name);
     banner.innerHTML = `
-      <span style="font-size:13px;color:#f9a8d4">💾 Ada game tersimpan<br>
-        <small style="color:rgba(255,255,255,0.45);font-size:11px">${p0n} vs ${p1n} · Kotak ${d.pos[0]}/${d.pos[1]}</small>
+      <span style="font-size:13px;color:#1B1633">💾 Ada game tersimpan<br>
+        <small style="color:#4B4463;font-size:11px">${p0n} vs ${p1n} · Kotak ${d.pos[0]}/${d.pos[1]}</small>
       </span>
       <button onclick="resumeGame()" style="
-        background:linear-gradient(135deg,#f43f5e,#fb923c);border:none;border-radius:12px;
-        color:white;font-weight:900;font-size:12px;padding:8px 14px;cursor:pointer;
-        font-family:'Nunito',sans-serif;">▶ Lanjut</button>
+        background:#F4514B;border:2px solid #1B1633;border-radius:2px;
+        color:#F6ECD8;font-weight:800;font-size:12px;padding:8px 14px;cursor:pointer;
+        font-family:'Karla',system-ui,sans-serif;">Lanjut</button>
       <button onclick="dismissSave()" style="
-        background:none;border:1px solid rgba(255,255,255,0.15);border-radius:12px;
-        color:rgba(255,255,255,0.45);font-size:12px;padding:8px 12px;cursor:pointer;
-        font-family:'Nunito',sans-serif;">✕</button>
+        background:none;border:1px solid rgba(27,22,51,0.25);border-radius:2px;
+        color:#4B4463;font-size:12px;padding:8px 12px;cursor:pointer;
+        font-family:'Karla',system-ui,sans-serif;">✕</button>
     `;
     document.body.appendChild(banner);
   } catch(e) {}
@@ -3045,7 +3044,7 @@ function resumeGame() {
   document.getElementById('pname-text-1').textContent = PLAYERS[1].name;
   document.getElementById('picon-0').innerHTML = getPlayerSVG(0);
   document.getElementById('picon-1').innerHTML = getPlayerSVG(1);
-  const MOOD_META = { romantis:{emoji:'💕',label:'Romantic',color:'#f472b6'}, playful:{emoji:'😜',label:'Teasing',color:'#fb923c'}, liar:{emoji:'🔥',label:'Spicy',color:'#ef4444'} };
+  const MOOD_META = { romantis:{emoji:'💕',label:'Romantic',color:'#F4514B'}, playful:{emoji:'😜',label:'Teasing',color:'#F5A03C'}, liar:{emoji:'🔥',label:'Spicy',color:'#C0392B'} };
   const m = MOOD_META[currentMood];
   const mb1 = document.getElementById('mood-badge-bar');
   mb1.style.background = `${m.color}22`;
