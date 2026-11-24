@@ -6,7 +6,7 @@
 
    CARA PASANG (2 baris, di index.html, SETELAH game.js):
      <link rel="stylesheet" href="assets/css/patch-improvements.css?v=5"/>
-     <script src="assets/js/patch-improvements.js?v=4"></script>
+     <script src="assets/js/patch-improvements.js?v=5"></script>
    Letakkan <link> di <head> (atau setelah style.css) dan <script> tepat
    setelah <script src="assets/js/game.js"></script>, sebelum </body>.
 
@@ -48,6 +48,9 @@
    P7. (a) Token berjalan jauh lebih cepat — 1,95s jadi ~1,3s roll→modal.
        (b) Timer durasi tidak hidup lagi setelah "Main Lagi".
        (c) Tombol Skip TOD bisa diklik selagi modal tantangan terbuka.
+   P8. Kartu Berani wajib dilakukan — opsi "Tidak Berani (−3)" dibuang dari
+       kartu; hanya tombol Selesai. Tombol Skip TOD (token) tetap ada
+       karena itu hadiah, bukan jalan keluar tanpa biaya.
 
    TIDAK DIUBAH: game.js, style.css, challenges-*.js, dan HTML asli.
    Hapus 2 baris pemasangan di atas untuk kembali ke versi asli.
@@ -70,7 +73,30 @@
   var _origAnimateSteps = window.animateSteps;
   var _origConfirmReset = window.confirmReset;
   var _origRollDice = window.rollDice;
+  var _origShowBeraniChallenge = window.showBeraniChallenge;
   function warn(missing) {}
+
+  // ── P8. Kartu Berani wajib dilakukan: buang opsi "Tidak Berani (−3)" ───
+  //    Asli: kartu Berani menawarkan tombol skip −3 kotak, sama seperti Dare.
+  //    Sekarang kartu itu wajib — hanya ada tombol "Selesai!". Timer yang
+  //    habis tetap dihitung selesai (todDoneInternal(true)), jadi tidak ada
+  //    jalan keluar lewat timeout.
+  if (typeof _origShowBeraniChallenge === 'function') {
+    window.showBeraniChallenge = function showBeraniChallenge(sq, level) {
+      _origShowBeraniChallenge(sq, level);
+      var body = document.getElementById('tod-body');
+      if (!body || !body.querySelector) return;
+      // Kalau pool Berani kosong, aslinya jatuh ke kartu Dare — jangan
+      // dicabut skip-nya. Kenali kartu Berani dari badge-nya.
+      if (!body.querySelector('.pill-berani')) return;
+      var skip = body.querySelector('.btn-skip');
+      if (skip && skip.parentNode) skip.parentNode.removeChild(skip);
+      var row = body.querySelector('.tod-action-btns');
+      if (row && row.style) row.style.setProperty('grid-template-columns', '1fr', 'important');
+      var rule = body.querySelector('.tod-rule');
+      if (rule) rule.textContent = 'Kartu Berani wajib dilakukan — tidak ada opsi skip. 💪';
+    };
+  } else warn('showBeraniChallenge');
 
   // ── P1. Token di kotak yang sama: dua token besar, bersebelahan ────────
   //    Asli: 7.5% + margin -1%/+3.5% → dua token ~19px di papan 390px yang

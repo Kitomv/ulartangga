@@ -25,6 +25,8 @@ class El {
       toggle: (c, f) => { if (f) classes.add(c); else classes.delete(c); },
       contains: (c) => classes.has(c),
     };
+    this._q = {}; // peta selector -> El palsu, diisi per-test
+    this.querySelector = (sel) => this._q[sel] || null;
   }
 }
 const els = {};
@@ -112,6 +114,7 @@ global.resetGameState = function () {
   ];
 };
 global.updateUI = function () { positionPions(); };
+global.showBeraniChallenge = function () {}; // master: kartu Berani + tombol skip −3
 
 // ── Load patch ───────────────────────────────────────────────────────────
 const patchPath = path.join(__dirname, '..', 'assets', 'js', 'patch-improvements.js');
@@ -184,6 +187,30 @@ check('reset: skip count kembali 0', skipTodCount[0] === 0 && skipTodCount[1] ==
 check('reset: tombol Skip tampil lagi', getEl('skip-tod-btn-0').style.display === 'inline-flex');
 skipTodCount = [0, 0]; phase = 'roll'; turn = 0; updateUI();
 check('updateUI: refresh tombol Skip', getEl('skip-tod-btn-0').disabled === true);
+
+console.log('P8 — Kartu Berani wajib (tanpa skip −3):');
+const todBody = getEl('tod-body');
+const rowEl = new El('row');
+rowEl.style = { setProperty: (k, v, p) => { rowEl.style[k] = v + '!' + p; } };
+const ruleEl = new El('rule');
+const skipEl = new El('skip');
+skipEl.parentNode = { removeChild: () => { todBody._q['.btn-skip'] = null; } };
+todBody._q = { '.pill-berani': new El('badge'), '.btn-skip': skipEl, '.tod-action-btns': rowEl, '.tod-rule': ruleEl };
+showBeraniChallenge(35, 'hot');
+check('tombol skip dibuang', todBody._q['.btn-skip'] === null);
+check('tombol Selesai tetap satu kolom', rowEl.style['grid-template-columns'] === '1fr!important',
+  JSON.stringify(rowEl.style));
+check('teks aturan: wajib dilakukan', ruleEl.textContent.includes('wajib dilakukan'), ruleEl.textContent);
+
+// Pool Berani kosong: aslinya render kartu Dare — skip tidak boleh dicabut.
+const dareSkip = new El('skip2');
+const dareRow = new El('row2');
+const dareRule = new El('rule2');
+dareRule.textContent = 'Berani lakukan ini? 🔥';
+todBody._q = { '.pill-berani': null, '.btn-skip': dareSkip, '.tod-action-btns': dareRow, '.tod-rule': dareRule };
+showBeraniChallenge(35, 'hot');
+check('fallback Dare: skip tetap ada', todBody._q['.btn-skip'] === dareSkip);
+check('fallback Dare: teks aturan tidak diubah', dareRule.textContent === 'Berani lakukan ini? 🔥');
 
 console.log(`\n${pass} lolos, ${fail} gagal`);
 process.exit(fail ? 1 : 0);
