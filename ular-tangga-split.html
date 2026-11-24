@@ -178,10 +178,10 @@
     </div>
     <div style="display:flex;gap:6px;width:100%">
       <button class="btn-stats" onclick="showStats()" style="flex:1">📊 Statistik</button>
-      <button id="btn-music" onclick="toggleMusic()" title="Musik latar" class="btn-music-wrap">
+      <button id="btn-music" aria-label="Musik latar" onclick="toggleMusic()" class="btn-music-wrap">
         <span class="music-dot"></span>🎵
       </button>
-      <button id="btn-mute" onclick="toggleMute()" title="Toggle suara" style="
+      <button id="btn-mute" aria-label="Toggle suara" onclick="toggleMute()" style="
         padding:8px 10px;background:rgba(255,255,255,0.05);
         border:1px solid rgba(255,255,255,0.09);border-radius:20px;
         color:#aaa;cursor:pointer;font-size:14px;transition:all .2s;
@@ -325,8 +325,10 @@
       <button class="custom-tab dare-tab" id="ctab-dare" onclick="setCustomTab('dare')">🔥 DARE</button>
     </div>
     <div class="custom-input-row">
-      <input class="custom-input" id="custom-input" placeholder="Tulis tantangan kamu..." maxlength="160"/>
-      <button class="btn-custom-add" onclick="addCustomTantangan()">+</button>
+      <label for="custom-input" style="font-size:12px;color:#e2e8f0;margin-right:6px">Tantangan kustom</label>
+      <input class="custom-input" id="custom-input" placeholder="Tulis tantangan kamu..." maxlength="160" aria-describedby="custom-input-error"/>
+      <button class="btn-custom-add" aria-label="Tambah tantangan kustom" onclick="addCustomTantangan()">+</button>
+      <div id="custom-input-error" role="alert" style="font-size:11px;color:#f43f5e;display:none"></div>
     </div>
     <div class="custom-list" id="custom-list" style="max-height:280px;overflow-y:auto;"></div>
     <button onclick="hideCustomOverlay()" style="margin-top:16px;width:100%;padding:12px;background:linear-gradient(135deg,#a855f7,#6366f1);border:none;border-radius:16px;color:white;font-weight:900;font-size:15px;cursor:pointer;font-family:'Nunito',sans-serif">

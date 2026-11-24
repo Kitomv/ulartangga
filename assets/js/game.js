@@ -2430,11 +2430,25 @@ function setCustomTab(tab) {
 
 function addCustomTantangan() {
   const input = document.getElementById('custom-input');
+  const err   = document.getElementById('custom-input-error');
   const text  = input.value.trim();
-  if (!text) return;
+  input.style.borderColor = '';
+  err.style.display = 'none';
+  if (!text) {
+    err.textContent = 'Masukkan teks tantangan terlebih dahulu.';
+    err.style.display = 'block';
+    input.focus();
+    return;
+  }
   const maxItems = 15;
   const arr = customTab === 'truth' ? customTruths : customDares;
-  if (arr.length >= maxItems) { input.style.borderColor='#f43f5e'; setTimeout(()=>input.style.borderColor='',600); return; }
+  if (arr.length >= maxItems) {
+    err.textContent = 'Maksimal 15 tantangan kustom per jenis.';
+    err.style.display = 'block';
+    input.style.borderColor = '#f43f5e';
+    setTimeout(() => { input.style.borderColor = ''; err.style.display = 'none'; }, 1200);
+    return;
+  }
   arr.push(text);
   input.value = '';
   sfx.pop(0.08);
