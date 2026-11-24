@@ -126,6 +126,10 @@ global.resetGameState = function () {
 global.updateUI = function () { positionPions(); };
 global.showBeraniChallenge = function () {}; // master: kartu Berani + tombol skip −3
 global.renderChallenge = function () {};     // master: kartu Truth/Dare
+// master: renderTodChallenge memecah {AKU}/{KAMU} jadi text node. Stub cukup
+// mencatat teks yang diterima supaya patch bisa diperiksa.
+global.__todRendered = [];
+global.renderTodChallenge = function (el, challenge) { global.__todRendered.push(challenge); };
 
 // ── Load patch ───────────────────────────────────────────────────────────
 const patchPath = path.join(__dirname, '..', 'assets', 'js', 'patch-improvements.js');
@@ -248,6 +252,24 @@ global.setTimeout = (fn) => { fn(); return 0; };
 refBtn.click();
 global.setTimeout = realSetTimeout;
 check('tidak mundur di bawah kotak 1', pos[1] === 2, 'pos=' + JSON.stringify(pos));
+
+console.log('P10 — durasi jadi kalimat sendiri:');
+const p10 = (t) => { global.__todRendered = []; renderTodChallenge(null, t); return global.__todRendered[0]; };
+check('ekor "— lakukan selama" jadi kalimat baru',
+  p10('{AKU} bisikkan — bagian favorit — lakukan selama 30 detik.')
+  === '{AKU} bisikkan — bagian favorit. Lakukan selama 30 detik.',
+  p10('{AKU} bisikkan — bagian favorit — lakukan selama 30 detik.'));
+check('"lakukan" tanpa "selama" ikut dipisah',
+  p10('Sebut 3 hal — lakukan 20 detik.') === 'Sebut 3 hal. Lakukan 20 detik.',
+  p10('Sebut 3 hal — lakukan 20 detik.'));
+check('em dash di tengah tidak disentuh',
+  p10('{AKU} pegang — erat — lalu bisik.') === '{AKU} pegang — erat — lalu bisik.');
+check('teks tanpa durasi lewat apa adanya',
+  p10('{KAMU} pejamkan mata dan tebak.') === '{KAMU} pejamkan mata dan tebak.');
+check('"lakukan" di tengah bukan ekor tidak disentuh',
+  p10('{AKU} lakukan apa saja yang {KAMU} mau.') === '{AKU} lakukan apa saja yang {KAMU} mau.');
+check('angka durasi tidak berubah',
+  p10('A — lakukan selama 2 menit.').includes('2 menit'));
 
 console.log(`\n${pass} lolos, ${fail} gagal`);
 process.exit(fail ? 1 : 0);

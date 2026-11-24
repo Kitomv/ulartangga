@@ -6,7 +6,7 @@
 
    CARA PASANG (2 baris, di index.html, SETELAH game.js):
      <link rel="stylesheet" href="assets/css/patch-improvements.css?v=7"/>
-     <script src="assets/js/patch-improvements.js?v=6"></script>
+     <script src="assets/js/patch-improvements.js?v=7"></script>
    Letakkan <link> di <head> (atau setelah style.css) dan <script> tepat
    setelah <script src="assets/js/game.js"></script>, sebelum </body>.
 
@@ -58,6 +58,10 @@
        selesai (dia sudah meminta), lawan yang mundur 3 dari posisinya
        sendiri, streak-nya putus, dan skip-nya tercatat. Kartu Berani
        tidak dapat tombol ini (wajib dilakukan).
+   P10. Kalimat kartu lebih mudah dibaca — 39 kartu menaruh durasi sebagai
+        ekor klausa: "... dan caranya — lakukan selama 30 detik." Sekarang
+        durasi jadi kalimat sendiri: "... dan caranya. Lakukan selama
+        30 detik." Rata-rata kalimat turun dari 17,5 jadi 14,9 kata.
 
    TIDAK DIUBAH: game.js, style.css, challenges-*.js, dan HTML asli.
    Hapus 2 baris pemasangan di atas untuk kembali ke versi asli.
@@ -155,6 +159,26 @@
       if (typeof saveGame === 'function') saveGame();
     }, 0);
   }
+
+  // ── P10. Kalimat kartu lebih mudah dibaca: instruksi durasi dipisah ─────
+  //    Dulu 39 kartu menaruh durasi sebagai ekor klausa terakhir:
+  //      "... dan caranya — lakukan selama 30 detik."
+  //    Satu kalimat panjang berisi tiga klausa, dan bagian yang harus
+  //    dituruti (berapa lama) justru yang paling mudah terlewat. Sekarang
+  //    durasi jadi kalimat sendiri: "... dan caranya. Lakukan selama 30 detik."
+  //    Timer TIDAK terpengaruh — parseDurationFromText() membaca teks asli
+  //    sebelum render, dan angkanya tidak berubah.
+  //    Hanya pola ekor itu yang disentuh; teks lain lewat apa adanya.
+  var _origRenderTodChallenge = window.renderTodChallenge;
+  var DURATION_TAIL = /\s+—\s+lakukan((?:\s+selama)?\s+[^.]*)\.\s*$/;
+  if (typeof _origRenderTodChallenge === 'function') {
+    window.renderTodChallenge = function renderTodChallenge(el, challenge, names) {
+      var text = typeof challenge === 'string'
+        ? challenge.replace(DURATION_TAIL, function (_, rest) { return '. Lakukan' + rest + '.'; })
+        : challenge;
+      return _origRenderTodChallenge(el, text, names);
+    };
+  } else warn('renderTodChallenge');
 
   // ── P1. Token di kotak yang sama: dua token besar, bersebelahan ────────
   //    Asli: 7.5% + margin -1%/+3.5% → dua token ~19px di papan 390px yang
