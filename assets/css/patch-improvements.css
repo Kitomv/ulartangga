@@ -170,3 +170,29 @@ button:focus-visible,
   outline-offset: 2px !important;
 }
 
+/* ── ui-ux-pro-max: CRITICAL — color is not the only indicator ── */
+.level-pip.active-mild,
+.level-pip.active-medium,
+.level-pip.active-hot {
+  border: 1px solid rgba(255,255,255,0.45) !important;
+  box-shadow: 0 0 0 1px currentColor !important;
+}
+
+/* ── ui-ux-pro-max: CRITICAL — cursor pointer on all interactives ── */
+[role="button"]:not([disabled]),
+.joker-token.has {
+  cursor: pointer !important;
+}
+.joker-token.empty {
+  cursor: default !important;
+}
+
+/* ── ui-ux-pro-max: HIGH — no horizontal scroll ── */
+html, body { overflow-x: hidden !important; }
+
+/* ── ui-ux-pro-max: HIGH — readable line height ── */
+body { line-height: 1.6 !important; }
+
+/* ── ui-ux-pro-max: MEDIUM — smooth transitions 150–300ms ── */
+button, [role="button"] { transition: all 200ms ease !important; }
+
