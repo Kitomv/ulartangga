@@ -90,10 +90,9 @@ window.CHALLENGES_PLAYFUL = {
     "Saling cium leher dari bawah telinga turun ke bahu — masing-masing 20 detik. Yang dicium tidak boleh bergerak.",
     "Taruhan: siapa yang pertama tersenyum saat dicium leher harus menuruti satu permintaan lawannya.",
     "Bergantian ucapkan instruksi ke pasangan: 'Aku mau kamu ___ aku sekarang.' Pasangan langsung lakukan.",
-    "Bergantian pijat bahu satu sama lain 60 detik — yang dipijat ceritakan satu hal yang paling {AKU} suka dari pasangan.",
+    "Bergantian pijat bahu satu sama lain 60 detik — yang dipijat ceritakan satu hal yang paling ia suka dari pasangan.",
     "Satu orang berbaring, yang lain punya 45 detik untuk menyentuh wajah dan leher sesukanya. Setelah itu ganti peran.",
     "Saling tatap mata 30 detik tanpa bicara — lalu masing-masing jujur tentang apa yang dirasakan.",
   ],
 
 };
-

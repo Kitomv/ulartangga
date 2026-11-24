@@ -1,5 +1,5 @@
 // ─── MODE LIAR ───────────────────────────────────────────────────
-// Vibe: eksplisit, vulgar, langsung, no-filter — khusus 17+
+// Vibe: eksplisit, vulgar, langsung, no-filter — khusus 18+
 // Ratio: lebih banyak DARE (aksi) daripada TRUTH (pertanyaan)
 // {AKU} = pemain giliran ini · {KAMU} = pasangannya
 
@@ -105,7 +105,7 @@ window.CHALLENGES_LIAR = {
       "{AKU} rebahkan {KAMU} dan cium 5 titik berbeda di tubuh {KAMU} yang {AKU} pilih sendiri selama 75 detik — tahan 15 detik di tiap titik.",
       "{AKU} biarkan {KAMU} merekam video pendek tubuh {AKU} dalam pose yang {KAMU} pilih — {AKU} tidak boleh menolak posnya — lakukan selama 30 detik.",
       "{AKU} tunjukkan secara demonstrasi tanpa malu — gerakan pinggul yang paling nikmat saat {AKU} di posisi atas — lakukan selama 30 detik.",
-      "{AKU} sebutkan satu hal yang kamu suka ke {KAMU} — dan lakukan sekarang juga selama 1 menit.",
+      "{AKU} sebutkan satu hal yang {AKU} suka ke {KAMU} — dan lakukan sekarang juga selama 1 menit.",
       "{AKU} teteskan es batu dari leher {KAMU} turun ke perut — lalu bersihkan semuanya dengan lidah {AKU} perlahan selama 2 menit.",
       "{AKU} duduk di atas {KAMU} menghadap depan, gerakkan pinggul {AKU} perlahan — {KAMU} tidak boleh pegang {AKU} selama 90 detik.",
       "{AKU} cium paha dalam {KAMU} sambil tangan {AKU} terus bergerak bebas — jangan berhenti sampai {KAMU} bilang cukup.",
@@ -119,8 +119,8 @@ window.CHALLENGES_LIAR = {
 
   duo: [
     "Saling berciuman selama 2 menit tanpa berhenti — kedua tangan harus aktif bergerak di tubuh pasangan.",
-    "Bergantian cium paha dalam pasangan 40 Detik — dari lutut naik ke atas, masing-masing 20 detik. Yang dicium tutup mata.",
-    "Saling lepas semua pakaian satu sama lain — yang paling cepat selesai dapat kontrol penuh ke yang kalah selama 2 menit .",
+    "Bergantian cium paha dalam pasangan 40 detik — dari lutut naik ke atas, masing-masing 20 detik. Yang dicium tutup mata.",
+    "Saling lepas semua pakaian satu sama lain — yang paling cepat selesai dapat kontrol penuh ke yang kalah selama 2 menit.",
     "Satu orang berbaring, yang lain punya 60 detik untuk menyentuh dan mencium sesukanya. Setelah itu ganti peran.",
     "Bergantian bisikkan instruksi vulgar ke telinga pasangan selama 60 detik — masing-masing harus langsung lakukan selama 30 detik.",
     "Tantangan 3 menit: 1 menit saling cium, 1 menit saling lepas pakaian, 1 menit terakhir bebas.",
@@ -154,4 +154,3 @@ window.CHALLENGES_LIAR = {
   ],
 
 };
-
