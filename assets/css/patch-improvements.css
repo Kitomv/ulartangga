@@ -254,14 +254,80 @@ body.no-scroll .player-cards { flex-shrink: 0; }
     height: min(400px, calc(100vw - 155px), calc(100dvh - 320px)) !important;
   }
 }
-@media (max-width: 600px) {
+/* ── Phone (≤600px) is the primary target ───────────────────────────────
+   Everything here is sized against a 360×640 budget: app bar + player cards
+   + board + side panel must fit 100dvh with the page locked.
+   A phone on its side is 844px *wide* and 390 tall, so the same fixes are
+   keyed on short height as well as narrow width. */
+@media (max-width: 600px), (max-height: 560px) {
+
+/* Consent screen: `align-items: center` on a 750px card inside a 640px
+   viewport puts the top at -55px and the agree button below the fold, both
+   unreachable. `flex-start` + auto margins centres it when it fits and
+   collapses to 0 when it does not, so the top stays reachable. */
+  #age-consent-screen { align-items: flex-start !important; padding: 10px !important; }
+  #age-consent-screen > * { margin: auto !important; }
+  .consent-card { padding: 20px 16px !important; }
+  .consent-icon { font-size: 40px !important; margin-bottom: 8px !important; }
+  .consent-title { font-size: 21px !important; }
+  .consent-title::after { margin-top: 10px !important; }
+  .consent-desc { font-size: 12.5px !important; line-height: 1.55 !important; margin-bottom: 14px !important; }
+  .consent-terms { gap: 7px !important; margin-bottom: 16px !important; }
+  .consent-item { padding: 9px 11px !important; font-size: 12px !important; gap: 10px !important; }
+  .consent-btn { padding: 14px 0 !important; font-size: 14px !important; }
+
+  /* TOD sheet: 38px buttons are under the 44px touch floor. The card can be
+     taller than a landscape viewport, so it scrolls instead of clipping. */
+  #tod-overlay { overflow-y: auto !important; }
+  .tod-card { padding: 16px 14px 20px !important; max-height: calc(100dvh - 16px); overflow-y: auto; }
+  .btn-done, .btn-skip { min-height: 44px !important; }
+  .tod-challenge { font-size: 14px !important; min-height: 44px !important; margin-bottom: 12px !important; }
+
+  /* Tap targets inside the panel */
+  .btn-reset { min-height: 44px !important; }
+  .btn-stats { min-height: 44px !important; }
+}
+
+@media (max-width: 600px), (max-height: 560px) {
   body.no-scroll h1 { display: none !important; }
-  body.no-scroll .board-wrap {
-    width: min(calc(100vw - 12px), calc(100dvh - 375px)) !important;
-    height: min(calc(100vw - 12px), calc(100dvh - 375px)) !important;
-    min-width: 0; min-height: 0;
-  }
+  /* style.css sets flex-wrap: wrap on a flex-direction: column container.
+     Column wrapping makes *columns* — the side panel lands to the right of
+     the board and hides behind overflow: hidden. Phones stack, never wrap. */
+  body.no-scroll .game-layout { flex-wrap: nowrap !important; gap: 6px !important; }
+
+  /* Player cards as a compact two-line strip: 148px -> ~92px, which is what
+     buys the board its size on a 640px-tall screen. */
+  body.no-scroll .player-cards { gap: 6px !important; margin-bottom: 4px !important; }
+  body.no-scroll .player-card { padding: 5px 8px !important; }
+  body.no-scroll .pcard-name { font-size: 11px !important; }
+  body.no-scroll .pcard-pos { font-size: 15px !important; margin-top: 0 !important; }
+
+  body.no-scroll .side-panel { gap: 6px !important; flex: 0 0 auto; }
+  body.no-scroll .game-log { max-height: 42px !important; min-width: 0 !important; }
   body.no-scroll .game-duration { width: auto !important; flex: 0 0 auto; }
+}
+
+/* Portrait phone: stack, so the board takes the width and the whole budget. */
+@media (max-width: 600px) and (min-height: 561px) {
+  body.no-scroll .board-wrap {
+    width: min(calc(100vw - 12px), calc(100dvh - 392px)) !important;
+    height: min(calc(100vw - 12px), calc(100dvh - 392px)) !important;
+    min-width: 0; min-height: 0;
+    flex: 0 0 auto;
+  }
+}
+
+/* Phone on its side (390px tall): the consent card is 413px. Icon height is
+   font-size × line-height, so 40px × 1.6 = 64px — the worst offender. */
+@media (max-height: 560px) {
+  .consent-icon { font-size: 30px !important; line-height: 1 !important; margin-bottom: 6px !important; }
+  .consent-title { font-size: 19px !important; }
+  .consent-title::after { margin-top: 8px !important; }
+  .consent-desc { font-size: 12px !important; line-height: 1.4 !important; margin-bottom: 10px !important; }
+  .consent-terms { gap: 5px !important; margin-bottom: 12px !important; }
+  .consent-item { padding: 7px 10px !important; font-size: 11.5px !important; line-height: 1.4 !important; }
+  .consent-card { padding: 14px 14px !important; }
+  .consent-btn { padding: 12px 0 !important; }
 }
 /* Short landscape (phone on its side): reclaim the chrome instead of
    shrinking the board to a stamp. */
