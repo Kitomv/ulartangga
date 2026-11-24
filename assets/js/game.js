@@ -1747,11 +1747,6 @@ function renderChallenge(type, sq, level) {
         const ci = customDares.findIndex((_,i) => !usedCustomDare.includes(i));
         if (ci >= 0) {
           usedCustomDare.push(ci);
-          const aku  = escapeHtml(PLAYERS[turn].name);
-          const kamu = escapeHtml(PLAYERS[(turn+1)%2].name);
-          const challenge = customDares[ci]
-            .replace(/\{AKU\}/g,  `<strong style="color:${PLAYERS[turn].colorHex}">${aku}</strong>`)
-            .replace(/\{KAMU\}/g, `<strong style="color:${PLAYERS[(turn+1)%2].colorHex}">${kamu}</strong>`);
           const customParsed = parseDurationFromText(customDares[ci]);
           if (customParsed === -1) {
             stopTimer();
@@ -2793,8 +2788,8 @@ const SAVE_KEY = 'tod_game_save_v2';
 // Explicit schema for save data validation. Unknown/extra fields are ignored.
 // Required fields must exist with correct types; optional fields have defaults.
 const SAVE_SCHEMA = {
-  pos:            { type: 'array',  len: 2, item: 'number', required: true },
-  turn:           { type: 'number', required: true },
+  pos:            { type: 'array',  len: 2, item: 'number', range: [1,100], required: true },
+  turn:           { type: 'number', range: [0,1], required: true },
   phase:          { type: 'string', required: true, enum: ['roll','tod','done'] },
   pendRaw:        { type: ['number','null'], required: true },
   pendAfter:      { type: ['number','null'], required: true },
@@ -2857,6 +2852,7 @@ function validateSaveData(raw) {
 
     if (spec.type === 'number') {
       if (typeof val !== 'number' || !Number.isFinite(val)) return { ok: false };
+      if (spec.range && (val < spec.range[0] || val > spec.range[1])) return { ok: false };
       out[key] = val;
     } else if (spec.type === 'string') {
       if (typeof val !== 'string') return { ok: false };
@@ -2865,6 +2861,8 @@ function validateSaveData(raw) {
     } else if (spec.type === 'array') {
       if (!Array.isArray(val) || (spec.len && val.length !== spec.len)) return { ok: false };
       if (spec.item === 'number' && !val.every(v => typeof v === 'number' && Number.isFinite(v))) return { ok: false };
+      // Per-item bounds (e.g. pos must be a cell 1..100) — reject whole save if any fail.
+      if (spec.range && !val.every(v => v >= spec.range[0] && v <= spec.range[1])) return { ok: false };
       out[key] = [...val];
     } else if (spec.type === 'object') {
       if (typeof val !== 'object' || Array.isArray(val) || val === null) return { ok: false };
@@ -2895,6 +2893,14 @@ function validateSaveData(raw) {
     }
     return clean;
   });
+
+  // Custom challenge lists: keep only non-empty strings, capped — a corrupted
+  // save with non-strings would crash renderChallenge (`.replace` on a number).
+  const cleanCustom = (arr) => Array.isArray(arr)
+    ? arr.filter(s => typeof s === 'string' && s.trim().length > 0).slice(0, 15)
+    : [];
+  out.customTruths = cleanCustom(d.customTruths);
+  out.customDares  = cleanCustom(d.customDares);
 
   // Validate CELL_TYPE keys mapping to valid types
   if (d.CELL_TYPE && typeof d.CELL_TYPE === 'object' && !Array.isArray(d.CELL_TYPE)) {
