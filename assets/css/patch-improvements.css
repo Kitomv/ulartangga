@@ -2,7 +2,7 @@
    patch-improvements.css — Ular Tangga Truth or Dare
    Pasangan dari patch-improvements.js. Load SETELAH style.css di
    index.html:
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=5"/>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=6"/>
    Semua aturan di sini menimpa style.css asli (load order), tanpa
    mengedit file aslinya. Hapus baris <link> di atas untuk kembali normal.
    ========================================================================== */
@@ -11,9 +11,15 @@
    Asli: clamp(7px, 1vw, 10px). Di layar kecil malah mengecil ke 4–6px.
    Halo kertas: nomor sudah melukis di atas ular/tangga (paint order
    benar), yang kurang kontras. Knockout cream memisahkannya dari
-   badan ular maroon, dan tak terlihat di atas sel kertas. */
+   badan ular maroon, dan tak terlihat di atas sel kertas.
+   Ukuran memakai cqw (lebar papan), bukan vw: papan di layar ponsel
+   dibatasi tinggi (100dvh - chrome), jadi vw terus membesar sementara
+   selnya tidak — label 3 digit lalu meluber. 4.4cqw ≈ 44% satu sel,
+   cukup untuk "100" tanpa menyeberang garis sel; lantai 9px adalah
+   batas fisik sel 17px di 320. */
+.board-wrap { container-type: inline-size; }
 .cell-num {
-  font-size: clamp(10px, 2.6vw, 12px) !important;
+  font-size: clamp(9px, 4.4cqw, 20px) !important;
   color: var(--ink, #1B1633) !important;
   background: none !important;
   padding: 0 !important;
