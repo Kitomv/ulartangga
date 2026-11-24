@@ -196,3 +196,19 @@ body { line-height: 1.6 !important; }
 /* ── ui-ux-pro-max: MEDIUM — smooth transitions 150–300ms ── */
 button, [role="button"] { transition: all 200ms ease !important; }
 
+/* ── frontend-design: readable measure on rules overlay (< 80 chars) ── */
+#rules-overlay ol,
+#custom-overlay .custom-list {
+  max-width: 42ch !important;
+}
+
+/* ── frontend-design: one memorable element only ──
+   Heat overlay is THE memorable element; soften the winner card glow
+   so it doesn't compete, and keep the rest quiet and disciplined. ── */
+.winner-card {
+  box-shadow: 0 0 60px rgba(244,63,94,0.3) !important;
+}
+.winner-btn {
+  box-shadow: 0 4px 18px rgba(244,63,94,0.3) !important;
+}
+
