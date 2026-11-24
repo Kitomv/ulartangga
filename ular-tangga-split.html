@@ -61,13 +61,13 @@
 
     <div class="name-fields">
     <div class="name-input-group">
-      <label>💋 Pemain 1</label>
+      <label for="name0">💋 Pemain 1</label>
       <input class="name-field" id="name0" placeholder="Nama kamu..." maxlength="20"/>
       <div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:8px;padding-left:2px">Pilih Bidak</div>
       <div class="pion-picker-row" id="pions0"></div>
     </div>
     <div class="name-input-group">
-      <label>🧡 Pemain 2</label>
+      <label for="name1">🧡 Pemain 2</label>
       <input class="name-field" id="name1" placeholder="Nama dia..." maxlength="20"/>
       <div style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-top:8px;padding-left:2px">Pilih Bidak</div>
       <div class="pion-picker-row" id="pions1"></div>
@@ -123,7 +123,7 @@
       <div class="pcard-turn" id="pturn-0" style="color:var(--p0)">← giliran</div>
       <div style="font-size:10px;color:#888" id="pstat-mini-0">✅0 ❌0</div>
       <span class="streak-badge" id="streak-0"></span>
-      <div class="joker-token empty" id="joker-0" onclick="useJokerFromPanel(0)">🃏 0</div>
+      <div class="joker-token empty" id="joker-0" role="button" tabindex="0" aria-label="Gunakan token Joker pemain 1" onclick="useJokerFromPanel(0)" onkeydown="if(event.key==='Enter'||event.key===' ')useJokerFromPanel(0)">🃏 0</div>
       <button id="skip-tod-btn-0" onclick="useSkipTod(0)" style="display:none;align-items:center;gap:4px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;color:white;font-weight:900;font-size:10px;padding:3px 8px;cursor:pointer;font-family:'Nunito',sans-serif" title="Skip tantangan ini gratis (tanpa mundur kotak)">🎟️ Skip TOD ×0</button>
     </div>
   </div>
@@ -138,7 +138,7 @@
       <div class="pcard-turn" id="pturn-1" style="color:var(--p1);display:none">← giliran</div>
       <div style="font-size:10px;color:#888" id="pstat-mini-1">✅0 ❌0</div>
       <span class="streak-badge" id="streak-1"></span>
-      <div class="joker-token empty" id="joker-1" onclick="useJokerFromPanel(1)">🃏 0</div>
+      <div class="joker-token empty" id="joker-1" role="button" tabindex="0" aria-label="Gunakan token Joker pemain 2" onclick="useJokerFromPanel(1)" onkeydown="if(event.key==='Enter'||event.key===' ')useJokerFromPanel(1)">🃏 0</div>
       <button id="skip-tod-btn-1" onclick="useSkipTod(1)" style="display:none;align-items:center;gap:4px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;color:white;font-weight:900;font-size:10px;padding:3px 8px;cursor:pointer;font-family:'Nunito',sans-serif">🎟️ Skip TOD ×0</button>
     </div>
   </div>
@@ -152,7 +152,7 @@
   </div>
 
   <div class="side-panel">
-    <svg id="dice-wrap" viewBox="0 0 100 100" onclick="rollDice()">
+    <svg id="dice-wrap" viewBox="0 0 100 100" role="button" tabindex="0" aria-label="Lempar dadu" onclick="rollDice()" onkeydown="if(event.key==='Enter'||event.key===' ')rollDice()">
       <rect rx="14" width="100" height="100" fill="#2a0f1e"/>
       <text x="50" y="66" text-anchor="middle" font-size="44">🎲</text>
     </svg>
@@ -173,7 +173,7 @@
       <span style="font-size:10px;opacity:.7">durasi main</span>
     </div>
 
-    <div class="game-log" id="game-log">
+    <div class="game-log" id="game-log" aria-live="polite" aria-label="Log permainan">
       <div class="log-entry">💕 Game dimulai!</div>
     </div>
     <div style="display:flex;gap:6px;width:100%">
@@ -283,7 +283,7 @@
   <div style="background:linear-gradient(160deg,#1a0f18,#2a0f1e);border:2px solid rgba(244,63,94,0.4);border-radius:24px;padding:28px 24px;max-width:460px;width:100%;animation:modalIn .35s cubic-bezier(0.34,1.56,0.64,1);max-height:90vh;overflow-y:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
       <div style="font-family:'Playfair Display',serif;font-size:16px;color:#f472b6;font-weight:700;letter-spacing:1px">📜 Peraturan Game</div>
-      <button onclick="hideRules()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">&times;</button>
+      <button aria-label="Tutup aturan" onclick="hideRules()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">&times;</button>
     </div>
     <ol style="padding-left:18px;margin:0;display:flex;flex-direction:column;gap:9px;">
       <li style="color:#e2e8f0;font-size:13px;line-height:1.5">Lempar dadu secara bergantian — siapa duluan bebas pilih.</li>
@@ -314,7 +314,7 @@
   <div style="background:linear-gradient(160deg,#1a0f18,#2a0f1e);border:2px solid rgba(168,85,247,0.4);border-radius:24px;padding:28px 24px;max-width:460px;width:100%;animation:modalIn .35s cubic-bezier(0.34,1.56,0.64,1);max-height:90vh;overflow-y:auto;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
       <div style="font-family:'Playfair Display',serif;font-size:16px;color:#c4b5fd;font-weight:700;letter-spacing:1px">✏️ Tantangan Kustom</div>
-      <button onclick="hideCustomOverlay()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">&times;</button>
+      <button aria-label="Tutup tantangan kustom" onclick="hideCustomOverlay()" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">&times;</button>
     </div>
     <div style="font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:14px;line-height:1.5">
       Tambahkan pertanyaan atau tantangan buatan kamu sendiri. Akan muncul secara acak saat game berlangsung.<br>
