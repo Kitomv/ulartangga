@@ -568,3 +568,91 @@ body.dark #mood-badge-bar { filter: brightness(1.35); }
   color: var(--ink-soft, #4B4463) !important;
 }
 
+/* ========================================================================
+   MIDNIGHT DESIRE — token remap + typography
+   Override layer: loads after style.css. Engine (game.js / style.css)
+   is read-only; every surface that reads var(--paper*)/var(--ink*) follows
+   the remap below for free. Hardcoded runtime values (inline styles,
+   generated SVG) are overridden per-selector in later sections.
+   ======================================================================== */
+
+/* ── Tokens ── */
+:root {
+  /* MIDNIGHT DESIRE palette (verbatim from brief) */
+  --md-black:     #130D12;  /* main background */
+  --md-burgundy:  #54152B;  /* panels, sections */
+  --md-red:       #A32648;  /* primary accent */
+  --md-rose:      #D98C9F;  /* secondary accent */
+  --md-gold:      #D6B779;  /* premium detail */
+  --md-ivory:     #F3E8E5;  /* main text */
+
+  /* derived — low chroma, never neon */
+  --md-black-2:   #1B1218;  /* raised surface */
+  --md-black-3:   #241820;  /* recessed / hover */
+  --md-line:      rgba(214,183,121,0.20);   /* gold hairline */
+  --md-line-soft: rgba(243,232,229,0.10);
+  --md-glow:      rgba(163,38,72,0.30);     /* candle halo */
+  --liar:         #7E1027;                  /* Spicy, deeper than --md-red */
+
+  /* existing engine tokens remapped onto the new palette */
+  --paper:      var(--md-black);
+  --paper-2:    var(--md-black-2);
+  --paper-3:    var(--md-black-3);
+  --ink:        var(--md-ivory);
+  --ink-soft:   #CDB9B9;
+  --ink-faint:  #9A868A;
+  --night:      #0F090D;
+  --night-2:    #0A0609;
+  --coral:      var(--md-red);   /* P0 / Romantic */
+  --marigold:   var(--md-gold);  /* P1 / Teasing */
+  --teal:       #7FA89F;         /* muted sage, Truth */
+  --sky:        #8FA6C2;         /* muted slate-blue, Duo */
+  --plum:       var(--md-rose);  /* Wild */
+  --butter:     var(--md-gold);  /* Joker */
+  --border:     var(--md-line);
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-ui:      'Jost', 'Karla', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+/* ── Light alternative: candlelight parchment ── */
+body.light {
+  --paper:      #FBF4E4;
+  --paper-2:    #F6ECD8;
+  --paper-3:    #EDE0C6;
+  --ink:        #1B1633;
+  --ink-soft:   #4B4463;
+  --ink-faint:  #857C9B;
+  --night:      #F6ECD8;
+  --night-2:    #FBF4E4;
+  --coral:      #F4514B;
+  --marigold:   #F5A03C;
+  --teal:       #2E9E8F;
+  --sky:        #4C8DD9;
+  --plum:       #9268C8;
+  --butter:     #FFD166;
+  --liar:       #C0392B;
+  --border:     rgba(27,22,51,0.16);
+  color-scheme: light;
+}
+
+/* ── Typography ── */
+body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--paper);
+  margin: 0;
+}
+
+/* Emotional headings & challenge text — Cormorant Garamond (serif) */
+h1, h2, .consent-title, .tod-challenge,
+#winner-name, .stats-card h2, #recap-overlay h2 {
+  font-family: var(--font-display) !important;
+}
+
+/* UI labels never ALL-CAPS */
+.mood-desc, .legend, .game-duration > span:last-child,
+.tod-type-badge, .tod-type-pill { text-transform: none !important; }
+
+/* ======================================================================== */
+

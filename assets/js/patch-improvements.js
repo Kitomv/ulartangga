@@ -551,8 +551,12 @@
     fixStaticText();
   }
 
-  // ── P6. Mode gelap: papan cetak versi malam ─────────────────────────────
-  var THEME_KEY = 'kuro-theme';
+  // ── P6. Tema: gelap default (Midnight Desire), terang = candlelight ──
+  //    body.dark lama = piring malam netral. Sekarang toggle adalah
+  //    "malam / terang": body.light adalah alternatif papan kertas warna
+  //    avorio. Kunci disimpan di kuro-theme-v2 (baru) agar nilai lama dari
+  //    kuro-theme tidak memaksa tema tak terduga.
+  var THEME_KEY = 'kuro-theme-v2';
   function setAttr(el, k, v) { if (el && el.setAttribute) el.setAttribute(k, v); }
   function readTheme() {
     try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
@@ -560,24 +564,24 @@
   function writeTheme(v) {
     try { localStorage.setItem(THEME_KEY, v); } catch (e) {}
   }
-  function applyTheme(dark, persist) {
-    document.body.classList.toggle('dark', dark);
+  function applyTheme(light, persist) {
+    document.body.classList.toggle('light', light);
     var b = document.getElementById('btn-theme');
     if (b) {
-      b.textContent = dark ? '☀️' : '🌙';
-      setAttr(b, 'aria-pressed', dark ? 'true' : 'false');
-      setAttr(b, 'aria-label', dark ? 'Mode terang' : 'Mode gelap');
+      b.textContent = light ? '☀️' : '🌙';
+      setAttr(b, 'aria-pressed', light ? 'true' : 'false');
+      setAttr(b, 'aria-label', light ? 'Mode gelap' : 'Mode terang');
     }
-    if (persist) writeTheme(dark ? 'dark' : 'light');
+    if (persist) writeTheme(light ? 'light' : 'midnight');
   }
   window.toggleTheme = function toggleTheme() {
-    applyTheme(!document.body.classList.contains('dark'), true);
+    applyTheme(!document.body.classList.contains('light'), true);
   };
   var savedTheme = readTheme();
-  var startDark = savedTheme
-    ? savedTheme === 'dark'
+  var startLight = savedTheme
+    ? savedTheme === 'light'
     : typeof window.matchMedia === 'function'
-      && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  applyTheme(startDark, false);
+      && window.matchMedia('(prefers-color-scheme: light)').matches;
+  applyTheme(startLight, false);
 
 })();
