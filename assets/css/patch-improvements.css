@@ -2,7 +2,7 @@
    patch-improvements.css — Ular Tangga Truth or Dare
    Pasangan dari patch-improvements.js. Load SETELAH style.css di
    index.html:
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=6"/>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=7"/>
    Semua aturan di sini menimpa style.css asli (load order), tanpa
    mengedit file aslinya. Hapus baris <link> di atas untuk kembali normal.
    ========================================================================== */
@@ -116,6 +116,28 @@
   opacity: 0.45;
   cursor: not-allowed;
   filter: grayscale(0.5);
+}
+
+/* ── Tombol "lawan menolak" di kartu Dare: tiga tombol dalam satu baris
+   butuh baris baru. Tombol ini menempati kolom penuh di bawah dua lainnya,
+   bergaya outline supaya tetap jelas ini jalan keluar, bukan aksi utama. */
+.btn-partner-refuse {
+  grid-column: 1 / -1;
+  min-height: 44px;
+  padding: 11px 10px;
+  border: 1px dashed rgba(246,236,216,0.45);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--paper, #F6ECD8);
+  font-family: var(--font-ui, 'Karla', sans-serif);
+  font-weight: 800;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+}
+.btn-partner-refuse:hover {
+  background: rgba(246,236,216,0.10);
+  border-color: var(--paper, #F6ECD8);
 }
 
 /* ── Token: jaga transform-origin tetap di bawah saat patch JS men-scale ── */

@@ -5,8 +5,8 @@
    Dibuat dari hasil playtest 23 Nov 2026 (test 1: 7/10, retest: 8/10).
 
    CARA PASANG (2 baris, di index.html, SETELAH game.js):
-     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=5"/>
-     <script src="assets/js/patch-improvements.js?v=5"></script>
+     <link rel="stylesheet" href="assets/css/patch-improvements.css?v=7"/>
+     <script src="assets/js/patch-improvements.js?v=6"></script>
    Letakkan <link> di <head> (atau setelah style.css) dan <script> tepat
    setelah <script src="assets/js/game.js"></script>, sebelum </body>.
 
@@ -51,6 +51,13 @@
    P8. Kartu Berani wajib dilakukan — opsi "Tidak Berani (−3)" dibuang dari
        kartu; hanya tombol Selesai. Tombol Skip TOD (token) tetap ada
        karena itu hadiah, bukan jalan keluar tanpa biaya.
+   P9. Lawan menolak Dare — dulu hukumannya jatuh ke pemilik kartu: kalau
+       tantangan menyuruh lawan melakukan sesuatu dan lawan menolak,
+       pemilik kartu yang bayar skip −3. Sekarang kartu Dare punya tombol
+       "🚫 Lawan menolak — dia mundur 3": pemilik kartu tetap dihitung
+       selesai (dia sudah meminta), lawan yang mundur 3 dari posisinya
+       sendiri, streak-nya putus, dan skip-nya tercatat. Kartu Berani
+       tidak dapat tombol ini (wajib dilakukan).
 
    TIDAK DIUBAH: game.js, style.css, challenges-*.js, dan HTML asli.
    Hapus 2 baris pemasangan di atas untuk kembali ke versi asli.
@@ -97,6 +104,57 @@
       if (rule) rule.textContent = 'Kartu Berani wajib dilakukan — tidak ada opsi skip. 💪';
     };
   } else warn('showBeraniChallenge');
+
+  // ── P9. Lawan menolak Dare: yang menolak mundur 3 kotak ────────────────
+  //    Sebelumnya hukumannya jatuh ke pemilik kartu: kalau lawan menolak
+  //    "minta lawanmu melakukan X", pemilik kartu yang bayar skip −3.
+  //    Sekarang ada tombol ketiga di kartu Dare: lawan sendiri yang mundur.
+  //    Pemilik kartu tetap dihitung selesai (dia sudah melakukan bagiannya:
+  //    meminta), lalu lawan dipindah mundur 3 dari posisinya sendiri.
+  //    Kartu Berani tidak dapat tombol ini (wajib dilakukan).
+  var _origRenderChallenge = window.renderChallenge;
+  if (typeof _origRenderChallenge === 'function') {
+    window.renderChallenge = function renderChallenge(type, sq, level) {
+      _origRenderChallenge(type, sq, level);
+      if (type !== 'dare') return;
+      var body = document.getElementById('tod-body');
+      if (!body || !body.querySelector) return;
+      var row = body.querySelector('.tod-action-btns');
+      if (!row || !row.appendChild || row.querySelector('#btn-partner-refuse')) return;
+      var btn = document.createElement('button');
+      btn.id = 'btn-partner-refuse';
+      btn.className = 'btn-partner-refuse';
+      btn.type = 'button';
+      btn.textContent = '🚫 Lawan menolak — dia mundur 3';
+      btn.addEventListener('click', partnerRefuseDare);
+      row.appendChild(btn);
+    };
+  } else warn('renderChallenge');
+
+  function partnerRefuseDare() {
+    var owner = turn;
+    var other = (turn + 1) % 2;
+    stopTimer();
+    document.getElementById('tod-overlay').classList.remove('show');
+    sfx.skip();
+    stats[other].skipped++;
+    stats[other].curStreak = 0;
+    skipStreak[other]++;
+    var back = Math.max(1, pos[other] - 3);
+    addLog('🚫 ' + PLAYERS[other].name + ' menolak tantangan ' + PLAYERS[owner].name +
+           ' — mundur 3 ke kotak ' + back);
+    // Pemilik kartu dihitung selesai lebih dulu (ular/tangga & giliran tetap
+    // berjalan seperti biasa), baru lawan dipindah supaya animasi pemilik
+    // tidak bertabrakan dengan posisi lawan.
+    resolveAfterTOD(true, false);
+    setTimeout(function () {
+      pos[other] = back;
+      positionPions();
+      var pp = document.getElementById('ppos-' + other);
+      if (pp) pp.textContent = 'Kotak ' + back;
+      if (typeof saveGame === 'function') saveGame();
+    }, 0);
+  }
 
   // ── P1. Token di kotak yang sama: dua token besar, bersebelahan ────────
   //    Asli: 7.5% + margin -1%/+3.5% → dua token ~19px di papan 390px yang

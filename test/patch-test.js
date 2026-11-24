@@ -26,7 +26,16 @@ class El {
       contains: (c) => classes.has(c),
     };
     this._q = {}; // peta selector -> El palsu, diisi per-test
-    this.querySelector = (sel) => this._q[sel] || null;
+    this.children = [];
+    this.listeners = {};
+    this.appendChild = (c) => { this.children.push(c); c.parentNode = this; return c; };
+    this.addEventListener = (ev, fn) => { (this.listeners[ev] = this.listeners[ev] || []).push(fn); };
+    this.click = () => (this.listeners.click || []).forEach((fn) => fn());
+    this.querySelector = (sel) => {
+      if (this._q[sel] !== undefined) return this._q[sel];
+      if (sel.charAt(0) === '#') return this.children.find((c) => c.id === sel.slice(1)) || null;
+      return null;
+    };
   }
 }
 const els = {};
@@ -52,6 +61,7 @@ global.phase = 'roll';
 global.currentMood = 'romantis';
 global.currentTodType = null;
 global.skipTodCount = [0, 0];
+global.skipStreak = [0, 0];
 global.stats = [
   { done: 0, skipped: 0, curStreak: 0, maxStreak: 0 },
   { done: 0, skipped: 0, curStreak: 0, maxStreak: 0 },
@@ -115,6 +125,7 @@ global.resetGameState = function () {
 };
 global.updateUI = function () { positionPions(); };
 global.showBeraniChallenge = function () {}; // master: kartu Berani + tombol skip −3
+global.renderChallenge = function () {};     // master: kartu Truth/Dare
 
 // ── Load patch ───────────────────────────────────────────────────────────
 const patchPath = path.join(__dirname, '..', 'assets', 'js', 'patch-improvements.js');
@@ -211,6 +222,32 @@ todBody._q = { '.pill-berani': null, '.btn-skip': dareSkip, '.tod-action-btns': 
 showBeraniChallenge(35, 'hot');
 check('fallback Dare: skip tetap ada', todBody._q['.btn-skip'] === dareSkip);
 check('fallback Dare: teks aturan tidak diubah', dareRule.textContent === 'Berani lakukan ini? 🔥');
+
+console.log('P9 — lawan menolak Dare: dia yang mundur 3:');
+const dBody = getEl('tod-body');
+const dRow = new El('tod-action-btns');
+dRow._q = { '.tod-action-btns': dRow };
+dBody._q = { '.tod-action-btns': dRow, '.btn-skip': null };
+pos = [10, 40]; turn = 0; phase = 'tod'; stats[0].curStreak = 1;
+renderChallenge('dare', 10, 'mild');
+const refBtn = dRow.querySelector('#btn-partner-refuse');
+check('kartu Dare dapat tombol lawan-menolak', !!refBtn);
+check('tombol belum ada sebelum render', dRow.children.length === 1);
+pos = [10, 40]; turn = 0; stats[1].curStreak = 4; skipStreak = [0, 0];
+const realSetTimeout = global.setTimeout;
+global.setTimeout = (fn) => { fn(); return 0; }; // jalankan penundaan seketika
+refBtn.click();
+global.setTimeout = realSetTimeout;
+check('lawan (P1) mundur 3: 40 -> 37', pos[1] === 37, 'pos=' + JSON.stringify(pos));
+check('pemilik kartu (P0) tetap di tempat', pos[0] === 10, 'pos=' + JSON.stringify(pos));
+check('pemilik kartu dihitung selesai', stats[0].curStreak === 2, 'streak=' + stats[0].curStreak);
+check('streak lawan putus', stats[1].curStreak === 0, 'streak=' + stats[1].curStreak);
+check('skip lawan tercatat', stats[1].skipped === 1 && skipStreak[1] === 1);
+pos = [2, 5]; turn = 0;
+global.setTimeout = (fn) => { fn(); return 0; };
+refBtn.click();
+global.setTimeout = realSetTimeout;
+check('tidak mundur di bawah kotak 1', pos[1] === 2, 'pos=' + JSON.stringify(pos));
 
 console.log(`\n${pass} lolos, ${fail} gagal`);
 process.exit(fail ? 1 : 0);
