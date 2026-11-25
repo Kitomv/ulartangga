@@ -271,6 +271,16 @@ h1 {
   min-height: 44px !important;
 }
 
+/* ── ui-ux-pro-max: CRITICAL — touch targets ≥44×44px (modal/action buttons) ──
+   .btn-done/.btn-skip got min-height 44px only in the mobile media query;
+   desktop sizing is padding-only (~42px). Close-stats/recap buttons too. */
+.btn-done, .btn-skip {
+  min-height: 44px !important;
+}
+.btn-close-stats, .btn-recap-close, .btn-recap-dl {
+  min-height: 44px !important;
+}
+
 /* ── ui-ux-pro-max: CRITICAL — visible focus rings ─────────────── */
 button:focus-visible,
 [role="button"]:focus-visible,
