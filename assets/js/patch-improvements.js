@@ -643,4 +643,54 @@
       && window.matchMedia('(prefers-color-scheme: light)').matches;
   applyTheme(startLight, false);
 
+  // ── P7. Timer TOD: durasi benar untuk tantangan per-titik / bergantian ──
+  //    parseDurationFromText() di game.js hanya ambil durasi pertama ("X detik")
+  //    dan abaikan durasi per-item ("5 detik tiap titik", "10 detik per kata").
+  //    Hasil: timer terlalu pendek (misal 75 detik dipadukan 15 detik = 15s).
+  //    Override global karena game.js memanggil binding ini langsung (sloppy mode,
+  //    tidak ada module). Visual / UX only — mapping ular/tangga, posisi, dan
+  //    aturan permainan tidak berubah.
+  var _origParseDuration = window.parseDurationFromText;
+  if (typeof _origParseDuration === 'function') {
+    window.parseDurationFromText = function parseDurationFromText(text) {
+      var plain = String(text).replace(/<[^>]+>/g, '');
+      var lower = plain.toLowerCase();
+      // Open-ended: tidak ada timer sama sekali.
+      var NO_TIMER_KEYWORDS = [
+        'tahan napas', 'tahan nafas',
+        'sampai x bilang stop', 'bilang stop',
+        'tahan sampai x yang pertama', 'yang pertama melepas',
+        'jangan berhenti sampai', 'tidak boleh berhenti sampai',
+        'sampai aku bilang', 'sampai kamu bilang',
+        'selama yang bisa', 'selama yang kamu bisa', 'selama yang aku bisa',
+      ];
+      var i;
+      for (i = 0; i < NO_TIMER_KEYWORDS.length; i++) {
+        if (lower.indexOf(NO_TIMER_KEYWORDS[i]) !== -1) return -1;
+      }
+      // Durasi keseluruhan eksplisit ("selama 30 detik", "lakukan selama 2 menit").
+      var total = 0;
+      var reTotal = /selama\s*([0-9]+)\s*(detik|menit)/gi;
+      var tm;
+      while ((tm = reTotal.exec(plain)) !== null) {
+        var v = parseInt(tm[1], 10);
+        total += tm[2].toLowerCase() === 'menit' ? v * 60 : v;
+      }
+      // Marker per-item: durasi tiap-tiap titik/kata, bukan total.
+      var perItem = /(tiap|setiap|masing-masing|bergantian|per kata|per titik|di beberapa titik)/i.test(plain);
+      if (perItem) {
+        if (total > 0) return total;               // "selama 75 detik ... tahan 15 detik tiap titik"
+        var per = plain.match(/([0-9]+)\s*detik/i);
+        var perSecs = per ? parseInt(per[1], 10) : 5;
+        var countMatch = plain.match(/([0-9]+)\s*(titik|kata)/i);
+        var count = countMatch ? parseInt(countMatch[1], 10) : 5;
+        return perSecs * count;
+      }
+      if (total > 0) return total;
+      return _origParseDuration(text);
+    };
+  } else {
+    warn('parseDurationFromText');
+  }
+
 })();
