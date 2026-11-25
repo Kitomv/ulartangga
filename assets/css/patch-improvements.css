@@ -922,3 +922,157 @@ h1, h2, .consent-title, .tod-challenge,
 
 /* ======================================================================== */
 
+/* ========================================================================
+   UI LAYOUT ADJUSTMENT — shell, split columns, always-square board
+   Visual only. Appended last so it wins over the earlier body.no-scroll
+   compaction blocks. No IDs, listeners, board numbering, or game logic.
+   ======================================================================== */
+
+/* Shell: header + player cards + board/panel in one ≤1100px column */
+body .game-shell {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 8px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+body .game-shell h1 { margin-top: 4px; }
+body .game-shell .subtitle { margin-bottom: 8px; }
+body .game-shell #mood-badge-bar { margin-bottom: 14px; }
+
+/* Player cards: horizontal strip above the board */
+body .game-shell .player-cards {
+  width: 100%;
+  max-width: 924px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+body .game-shell .player-card {
+  max-width: none;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 3px;
+}
+
+/* Two columns. #game-layout keeps its inline display:flex/none from game.js;
+   never force `display` here. */
+body .game-shell .game-layout {
+  flex-wrap: nowrap !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 24px !important;
+  width: 100% !important;
+  max-width: 1100px !important;
+  overflow: visible !important;
+  max-height: none !important;
+}
+
+/* Board: always 1:1, 540-580px when the viewport allows */
+body .game-shell .board-wrap {
+  flex: 0 0 auto;
+  width: min(560px, calc(100vw - 440px)) !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: 1 / 1;
+  border-radius: 3px;
+}
+
+/* Control panel: 320-360px, order preserved (DOM order is already correct) */
+body .game-shell .side-panel {
+  flex: 0 0 clamp(320px, 27vw, 360px);
+  width: clamp(320px, 27vw, 360px);
+  min-width: 320px;
+  max-width: 360px;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 10px !important;
+  margin-top: 0;
+}
+body .game-shell .side-panel > * { width: 100%; }
+body .game-shell #dice-wrap { width: 72px; height: 72px; align-self: center; }
+body .game-shell #btn-roll { min-height: 48px; font-size: 14px; }
+
+/* Contrast + hairline borders on the two text blocks */
+body .game-shell .legend {
+  display: block !important;
+  font-size: 11.5px !important;
+  line-height: 1.75 !important;
+  color: var(--ink-soft, #CDB9B9) !important;
+  border: 1px solid var(--md-line, rgba(214,183,121,0.20)) !important;
+  border-top: 2px solid var(--ink, #E8D8D4) !important;
+  padding: 10px 12px !important;
+}
+body .game-shell .game-log {
+  color: var(--ink-soft, #CDB9B9) !important;
+  border: 1px solid var(--md-line, rgba(214,183,121,0.20)) !important;
+  border-radius: 3px;
+  max-height: 160px !important;
+}
+body .game-shell .game-duration { border-radius: 3px; }
+
+/* Touch targets inside the panel */
+body .game-shell .side-panel button,
+body .game-shell .side-panel [role="button"] { min-height: 44px; }
+
+/* ── Page scroll: retire the 100dvh lock ─────────────────────────────────
+   The old layout squeezed board + panel into one viewport. Now the page
+   scrolls and the board keeps its square ratio. Same selectors as the
+   compaction blocks above, but appended later, so these win the cascade. */
+body.no-scroll {
+  height: auto !important;
+  min-height: 100dvh;
+  overflow: auto !important;
+  overflow-x: hidden !important;
+  justify-content: flex-start !important;
+}
+body.no-scroll .game-layout {
+  flex: 0 0 auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+body.no-scroll .subtitle { display: block !important; }
+body.no-scroll h1 { display: block !important; }
+body.no-scroll #mood-badge-bar { display: block !important; }
+body.no-scroll #dice-wrap { display: block !important; }
+body.no-scroll .side-panel {
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+body.no-scroll .game-log { max-height: 160px !important; min-width: 0 !important; }
+body.no-scroll .game-duration { width: 100% !important; }
+body.no-scroll .player-card { padding: 10px 14px !important; }
+body.no-scroll .pcard-name { font-size: 13px !important; }
+body.no-scroll .pcard-pos { font-size: 20px !important; }
+
+/* ── Stack below 1000px: board fills width, panel goes under board ── */
+@media (max-width: 1000px) {
+  body .game-shell { padding: 8px 12px 32px; }
+  body .game-shell .game-layout {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+  body .game-shell .board-wrap {
+    width: min(580px, calc(100vw - 24px)) !important;
+    max-width: 100%;
+  }
+  body .game-shell .side-panel {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    max-width: min(580px, calc(100vw - 24px));
+  }
+}
+
+/* Board layer map unchanged and correct:
+   #board 0 · #board-overlay auto · .cell::after 1 · .cell-tod 3 ·
+   .cell-num 5 · #pion-layer 10 · .pion 20. Positive z-index paints above
+   z-index:auto, so numbers and pions sit over snakes/ladders. */
+
