@@ -445,19 +445,18 @@
     };
   } else warn('updateUI');
 
-  // ── P5. Token berjalan lebih cepat ─────────────────────────────────────
+  // ── P5. Token berjalan lebih lambat, lebih terbaca ─────────────────────
   //    Asli: per kotak 0.68×stepMs + 0.6×stepMs = 1.28×stepMs, ditambah
-  //    bounce 190ms. Dadu 1–6, jadi 6 kotak di stepMs 155 = ~1,4s dan
-  //    roll→modal rata-rata ~1,95s (terukur). Sekarang satu jeda 0,95×stepMs
-  //    per kotak dan bounce 110ms: 6 kotak ~0,74s, total ~1,45s.
-  //    Dadu (750ms di rollDice) tidak diubah.
+  //    bounce 190ms. Patch: jeda per kotak dinaikkan supaya tiap langkah
+  //    jelas terlihat — 6 kotak ~0,86s di stepMs 150. Dadu (750ms di
+  //    rollDice) tidak diubah.
   if (typeof _origAnimateSteps === 'function') {
     window.animateSteps = function animateSteps(playerIdx, from, to, callback) {
       var el = pionEls[playerIdx];
       var dir = to > from ? 1 : -1;
       var steps = Math.abs(to - from);
       var cur = from, step = 0;
-      var stepMs = steps <= 2 ? 160 : steps <= 4 ? 135 : 110;
+      var stepMs = steps <= 2 ? 200 : steps <= 4 ? 175 : 150;
       //    P11: posisi pindah lewat translate di ruang piksel, bukan left/top.
       //    left/top memicu layout + raster ulang seluruh lapisan papan tiap
       //    langkah; translate cukup compositor. Trace 4x throttle/3 giliran:
