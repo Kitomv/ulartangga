@@ -233,7 +233,9 @@ h1 {
 /* ── Quality floor: respect reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
-  #heat-overlay { transition: none !important; }
+  #heat-overlay, #heat-overlay.heat-2, #heat-overlay.heat-3 { animation: none !important; transition: none !important; }
+  .cell-pulse::after { animation: none !important; }
+  .btn-music-wrap.on .music-dot { animation: none !important; }
   .pion { transition: none !important; }
 }
 
@@ -269,6 +271,16 @@ h1 {
   min-height: 44px !important;
 }
 
+/* ── ui-ux-pro-max: CRITICAL — touch targets ≥44×44px (modal/action buttons) ──
+   .btn-done/.btn-skip got min-height 44px only in the mobile media query;
+   desktop sizing is padding-only (~42px). Close-stats/recap buttons too. */
+.btn-done, .btn-skip {
+  min-height: 44px !important;
+}
+.btn-close-stats, .btn-recap-close, .btn-recap-dl {
+  min-height: 44px !important;
+}
+
 /* ── ui-ux-pro-max: CRITICAL — visible focus rings ─────────────── */
 button:focus-visible,
 [role="button"]:focus-visible,
@@ -297,6 +309,14 @@ button:focus-visible,
 [role="button"]:not([disabled]),
 .joker-token.has {
   cursor: pointer !important;
+}
+.joker-token {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px 10px !important;
 }
 .joker-token.empty {
   cursor: default !important;
@@ -567,4 +587,338 @@ body.dark #mood-badge-bar { filter: brightness(1.35); }
   letter-spacing: 0.5px !important;
   color: var(--ink-soft, #4B4463) !important;
 }
+
+/* ========================================================================
+   MIDNIGHT DESIRE — chrome (body, overlays, buttons, controls)
+   Loads after style.css and after the existing body.dark block, so these
+   win on specificity. All changes are additive overrides; no source file
+   is touched.
+   ======================================================================== */
+
+/* ── Body background: candlelit velvet, layered radials over midnight ── */
+body {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(84,21,43,0.35) 0%, transparent 45%),
+    radial-gradient(circle at 80% 90%, rgba(217,140,159,0.18) 0%, transparent 45%),
+    repeating-linear-gradient(92deg, rgba(163,38,72,0.03) 0 1px, transparent 1px 3px),
+    var(--paper);
+}
+
+/* ── Scrollbar (crimson hairline) ── */
+::-webkit-scrollbar-thumb { background: var(--md-red, #A32648) !important; }
+::-webkit-scrollbar-track { background: transparent !important; }
+
+/* ── Consent screen — box cover, night ── */
+#age-consent-screen {
+  background: var(--night) !important;
+  background-image:
+    radial-gradient(circle at 50% 20%, rgba(163,38,72,0.20) 0%, transparent 55%),
+    repeating-linear-gradient(92deg, rgba(243,232,229,0.014) 0 1px, transparent 1px 3px),
+    var(--night) !important;
+}
+.consent-card {
+  background: linear-gradient(170deg, #241820, #1B1218) !important;
+  border: 1px solid var(--md-line) !important;
+  box-shadow: 0 2px 0 rgba(214,183,121,0.10), 0 40px 80px rgba(0,0,0,0.75) !important;
+}
+.consent-card::after {
+  border-color: rgba(214,183,121,0.12) !important;
+}
+.consent-icon { color: var(--md-rose) !important; }
+.consent-title { color: var(--ink) !important; }
+.consent-title::after { background: repeating-linear-gradient(90deg, var(--md-red) 0 8px, transparent 8px 14px) !important; }
+.consent-desc { color: var(--ink-soft) !important; }
+.consent-item {
+  color: var(--ink) !important;
+  background: rgba(214,183,121,0.06) !important;
+  border: 1px solid var(--md-line) !important;
+}
+.consent-item:hover { border-color: var(--md-red) !important; }
+#btn-age-confirm {
+  background: var(--md-red) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 3px 3px 0 var(--md-gold) !important;
+}
+#btn-age-confirm:hover {
+  background: #8E1E39 !important;
+  box-shadow: 4px 4px 0 var(--md-gold) !important;
+}
+
+/* ── Name screen — landing ── */
+#name-screen {
+  background: var(--night) !important;
+}
+#name-screen h2 { color: var(--ink) !important; }
+#name-screen p { color: var(--ink-soft) !important; }
+
+/* Rules / custom buttons — gold hairline outline, transparent fill */
+#name-screen button[onclick="showRules()"],
+button[onclick="showCustomOverlay()"] {
+  background: transparent !important;
+  border: 1px solid var(--md-line) !important;
+  color: var(--md-gold) !important;
+  border-radius: 2px !important;
+}
+#name-screen button[onclick="showRules()"]:hover,
+button[onclick="showCustomOverlay()"]:hover {
+  border-color: var(--md-rose) !important;
+  color: var(--md-rose) !important;
+}
+
+/* ── Player setup panels: P1/P1 distinction ── */
+.name-input-group {
+  border: none !important;
+  background: transparent !important;
+}
+.name-input-group:nth-child(1) {
+  border-left: 3px solid var(--md-red) !important;
+}
+.name-input-group:nth-child(1) label { color: var(--md-red) !important; }
+.name-input-group:nth-child(2) {
+  border-left: 3px solid var(--md-gold) !important;
+}
+.name-input-group:nth-child(2) label { color: var(--md-gold) !important; }
+.name-field {
+  background: rgba(214,183,121,0.08) !important;
+  border: 1px solid var(--md-line) !important;
+  color: var(--ink) !important;
+}
+.name-field:focus {
+  border-color: var(--md-red) !important;
+  outline: 2px solid var(--md-glow) !important;
+}
+
+/* ── Mood cards — three distinct identities ── */
+.mood-btn {
+  border: 1px solid var(--md-line-soft) !important;
+  background: rgba(214,183,121,0.05) !important;
+  color: var(--ink-soft) !important;
+}
+.mood-btn.romantis { color: var(--md-rose) !important; }
+.mood-btn.playful  { color: var(--md-gold) !important; }
+.mood-btn.liar     { color: var(--liar) !important; }
+.mood-btn:hover {
+  border-color: var(--md-red) !important;
+  color: var(--ink) !important;
+  transform: translateY(-1px);
+}
+.mood-btn.active {
+  border: 2px solid var(--md-gold) !important;
+  box-shadow: 0 0 0 2px var(--md-gold) !important;
+}
+.mood-btn.active::after {
+  content: ' ✓';
+  color: var(--md-gold);
+  font-weight: 700;
+}
+.mood-btn.romantis.active { background: rgba(163,38,72,0.18) !important; }
+.mood-btn.playful.active  { background: rgba(214,183,121,0.15) !important; }
+.mood-btn.liar.active     { background: rgba(126,16,39,0.20) !important; }
+
+/* ── In-game chrome ── */
+h1, .subtitle { color: var(--ink) !important; }
+.subtitle::before, .subtitle::after { background: currentColor !important; opacity: 0.45 !important; }
+
+/* Player cards — velvet panels */
+.player-card {
+  background: var(--md-black-2) !important;
+  border: 1px solid var(--md-line) !important;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.35) !important;
+}
+.player-card.active-0 { box-shadow: 3px 3px 0 var(--md-red) !important; }
+.player-card.active-1 { box-shadow: 3px 3px 0 var(--md-gold) !important; }
+
+/* Board frame — gold hairline + candle under-glow */
+.board-wrap {
+  border: 1px solid var(--md-line) !important;
+  box-shadow: 0 0 0 1px var(--md-line), 0 24px 60px -30px var(--md-glow) !important;
+  background: var(--md-black-3) !important;
+}
+
+/* Cell numbers — legible over dark cells */
+.cell-num {
+  color: var(--ink) !important;
+  text-shadow: 0 0 6px rgba(10,6,9,0.75) !important;
+}
+
+/* Special-cell washes — under 12 % alpha so numbers stay readable */
+.cell-duo   { background: rgba(143,166,194,0.10) !important; border-color: rgba(143,166,194,0.45) !important; }
+.cell-joker { background: rgba(214,183,121,0.14) !important; border-color: rgba(214,183,121,0.50) !important; }
+.cell-wild  { background: rgba(217,140,159,0.10) !important; border-color: rgba(217,140,159,0.45) !important; }
+.cell-berani{ background: rgba(126,16,39,0.12) !important; border-color: rgba(126,16,39,0.55) !important; }
+
+/* ── Dice ── */
+#dice-wrap { filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.45)) !important; }
+.btn-roll {
+  background: linear-gradient(135deg, var(--md-burgundy), var(--md-red)) !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--md-line) !important;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.35) !important;
+}
+.btn-roll:hover { filter: brightness(1.15); transform: translateY(-1px); }
+.btn-roll:active { transform: translateY(1px); }
+.btn-roll:disabled {
+  background: rgba(243,232,229,0.12) !important;
+  color: var(--ink-faint) !important;
+  border-color: rgba(214,183,121,0.20) !important;
+  box-shadow: none !important;
+}
+
+/* ── Utility button row ≥44×44 ── */
+#btn-stats, #btn-music, #btn-mute, #btn-theme, .btn-reset {
+  min-width: 44px !important; min-height: 44px !important;
+}
+
+/* ── Overlays: velvet backdrop ── */
+#tod-overlay.show, #winner-overlay.show,
+#stats-overlay.show, #recap-overlay.show,
+#rules-overlay.show, #custom-overlay.show {
+  background: rgba(10,6,9,0.82) !important;
+}
+.tod-card {
+  background: var(--md-burgundy) !important;
+  border: 1px solid var(--md-line) !important;
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.35), 0 24px 48px rgba(0,0,0,0.6) !important;
+  color: var(--ink) !important;
+}
+.tod-card::after { border-color: rgba(214,183,121,0.12) !important; }
+.tod-challenge { color: var(--ink) !important; }
+.tod-type-pill {
+  background: rgba(214,183,121,0.14) !important;
+  border: 1.5px solid var(--md-gold) !important;
+  color: var(--md-gold) !important;
+}
+.btn-done {
+  background: linear-gradient(135deg, var(--md-burgundy), var(--md-red)) !important;
+  color: #fff !important;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.35) !important;
+}
+.btn-done:hover { filter: brightness(1.12); transform: translateY(-1px); }
+.btn-skip {
+  background: transparent !important;
+  border: 1px solid var(--md-line) !important;
+  color: var(--ink-soft) !important;
+}
+.btn-skip:hover { border-color: var(--md-red) !important; color: var(--ink) !important; }
+.btn-joker {
+  background: rgba(214,183,121,0.14) !important;
+  border: 1px solid var(--md-gold) !important;
+  color: var(--md-gold) !important;
+}
+.btn-joker:hover { background: rgba(214,183,121,0.26) !important; }
+
+/* ── Light alternative: candlelight parchment ── */
+body.light #age-consent-screen,
+body.light #name-screen,
+body.light #tod-overlay.show,
+body.light #winner-overlay.show,
+body.light #stats-overlay.show,
+body.light #recap-overlay.show,
+body.light #rules-overlay.show,
+body.light #custom-overlay.show {
+  background: #F6ECD8 !important;
+}
+body.light .tod-card,
+body.light .consent-card,
+body.light .winner-card,
+body.light .stats-card {
+  background: #FBF4E4 !important;
+  color: #1B1633 !important;
+}
+body.light .player-card { background: #FBF4E4 !important; border-color: rgba(27,22,51,0.16) !important; }
+body.light .board-wrap { background: #F6ECD8 !important; }
+body.light .cell-num { color: #1B1633 !important; text-shadow: none !important; }
+body.light .btn-roll { background: linear-gradient(135deg, #54152B, #A32648) !important; color: #1B1633 !important; }
+body.light .btn-done { background: linear-gradient(135deg, #54152B, #A32648) !important; color: #fff !important; }
+
+/* ======================================================================== */
+
+/* ========================================================================
+   MIDNIGHT DESIRE — token remap + typography
+   Override layer: loads after style.css. Engine (game.js / style.css)
+   is read-only; every surface that reads var(--paper*)/var(--ink*) follows
+   the remap below for free. Hardcoded runtime values (inline styles,
+   generated SVG) are overridden per-selector in later sections.
+   ======================================================================== */
+
+/* ── Tokens ── */
+:root {
+  /* MIDNIGHT DESIRE palette (verbatim from brief) */
+  --md-black:     #130D12;  /* main background */
+  --md-burgundy:  #54152B;  /* panels, sections */
+  --md-red:       #A32648;  /* primary accent */
+  --md-rose:      #D98C9F;  /* secondary accent */
+  --md-gold:      #D6B779;  /* premium detail */
+  --md-ivory:     #F3E8E5;  /* main text */
+
+  /* derived — low chroma, never neon */
+  --md-black-2:   #1B1218;  /* raised surface */
+  --md-black-3:   #241820;  /* recessed / hover */
+  --md-line:      rgba(214,183,121,0.20);   /* gold hairline */
+  --md-line-soft: rgba(243,232,229,0.10);
+  --md-glow:      rgba(163,38,72,0.30);     /* candle halo */
+  --liar:         #7E1027;                  /* Spicy, deeper than --md-red */
+
+  /* existing engine tokens remapped onto the new palette */
+  --paper:      var(--md-black);
+  --paper-2:    var(--md-black-2);
+  --paper-3:    var(--md-black-3);
+  --ink:        var(--md-ivory);
+  --ink-soft:   #CDB9B9;
+  --ink-faint:  #9A868A;
+  --night:      #0F090D;
+  --night-2:    #0A0609;
+  --coral:      var(--md-red);   /* P0 / Romantic */
+  --marigold:   var(--md-gold);  /* P1 / Teasing */
+  --teal:       #7FA89F;         /* muted sage, Truth */
+  --sky:        #8FA6C2;         /* muted slate-blue, Duo */
+  --plum:       var(--md-rose);  /* Wild */
+  --butter:     var(--md-gold);  /* Joker */
+  --border:     var(--md-line);
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-ui:      'Jost', 'Karla', system-ui, sans-serif;
+  color-scheme: dark;
+}
+
+/* ── Light alternative: candlelight parchment ── */
+body.light {
+  --paper:      #FBF4E4;
+  --paper-2:    #F6ECD8;
+  --paper-3:    #EDE0C6;
+  --ink:        #1B1633;
+  --ink-soft:   #4B4463;
+  --ink-faint:  #857C9B;
+  --night:      #F6ECD8;
+  --night-2:    #FBF4E4;
+  --coral:      #F4514B;
+  --marigold:   #F5A03C;
+  --teal:       #2E9E8F;
+  --sky:        #4C8DD9;
+  --plum:       #9268C8;
+  --butter:     #FFD166;
+  --liar:       #C0392B;
+  --border:     rgba(27,22,51,0.16);
+  color-scheme: light;
+}
+
+/* ── Typography ── */
+body {
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--paper);
+  margin: 0;
+}
+
+/* Emotional headings & challenge text — Cormorant Garamond (serif) */
+h1, h2, .consent-title, .tod-challenge,
+#winner-name, .stats-card h2, #recap-overlay h2 {
+  font-family: var(--font-display) !important;
+}
+
+/* UI labels never ALL-CAPS */
+.mood-desc, .legend, .game-duration > span:last-child,
+.tod-type-badge, .tod-type-pill { text-transform: none !important; }
+
+/* ======================================================================== */
 

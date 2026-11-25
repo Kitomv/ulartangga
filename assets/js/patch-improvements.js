@@ -190,6 +190,66 @@
     };
   } else warn('renderTodChallenge');
 
+  // ── P(x). Papan: ular & tangga menjadi MIDNIGHT DESIRE ──
+  //    Pemetaan ular/tangga dan koordinat cellCenter tidak berubah — hanya
+  //    isian dan garis SVG yang di-rekoleur. Semua warna asli ada di dalam
+  //    markup papan, jadi penggantian string tepat pada innerHTML overlay
+  //    aman (tidak menyentuh UI di luar papan).
+  if (typeof window.drawSnakesLadders === 'function') {
+    var _origDrawSnakesLadders = window.drawSnakesLadders;
+    var SL_COLOURS = {
+      // tangga — emas campuran (rail, highlight, glint, baut)
+      '#B8890E': '#D6B779',
+      '#F7C083': '#ECD9B4',
+      '#FFF3CF': '#F3E8E5',
+      '#C97716': '#B8890E',
+      '#fde68a': '#D6B779',
+      '#FFD166': '#D6B779',
+      // ular — gelap hias, sorotan emas 20 %
+      '#A3271F': '#2A1017',
+      '#FBA6A2': 'rgba(214,183,121,0.20)',
+      'rgba(159,18,57,0.75)': 'rgba(89,20,39,0.75)',
+      'rgba(136,19,55,0.65)': 'rgba(89,20,39,0.65)',
+      'rgba(190,18,60,0.5)': 'rgba(89,20,39,0.5)',
+      'rgba(253,164,175,0.35)': 'rgba(214,183,121,0.20)',
+      '#8E2F27': '#2A1017',
+      '#F27A52': '#5B1427',
+      '#C0392B': '#A32648',
+      '#F4514B': '#D98C9F',
+      '#1B1633': '#130D12',
+      'rgba(246,236,216,0.4)': 'rgba(243,232,229,0.30)',
+      '#0c0a09': '#130D12'
+    };
+    function escapeRegExp(s) {
+      return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    window.drawSnakesLadders = function drawSnakesLadders() {
+      _origDrawSnakesLadders();
+      var svg = document.getElementById('board-overlay');
+      if (!svg) return;
+      var html = svg.innerHTML;
+      Object.keys(SL_COLOURS).forEach(function (oldC) {
+        var newC = SL_COLOURS[oldC];
+        var re = new RegExp('(stop-color="|fill="|stroke=")' + escapeRegExp(oldC) + '"', 'g');
+        html = html.replace(re, '$1' + newC + '"');
+      });
+      svg.innerHTML = html;
+    };
+  } else warn('drawSnakesLadders');
+
+  // ── Dadu — badan malam, sorotan emas, titik tetap warna pemain ──
+  if (typeof window.renderDice === 'function') {
+    var _origRenderDice = window.renderDice;
+    window.renderDice = function renderDice(val) {
+      _origRenderDice(val);
+      var wrap = document.getElementById('dice-wrap');
+      if (!wrap) return;
+      wrap.innerHTML = wrap.innerHTML
+        .replace(/fill="#1C1636"/g, 'fill="#1B1218"')
+        .replace(/fill="#16112B"/g, 'fill="#130D12"');
+    };
+  } else warn('renderDice');
+
   // ── P1. Token di kotak yang sama: dua token besar, bersebelahan ────────
   //    Asli: 7.5% + margin -1%/+3.5% → dua token ~19px di papan 390px yang
   //    saling menutup, dan margin vertikal positif membuat token P1
@@ -551,8 +611,12 @@
     fixStaticText();
   }
 
-  // ── P6. Mode gelap: papan cetak versi malam ─────────────────────────────
-  var THEME_KEY = 'kuro-theme';
+  // ── P6. Tema: gelap default (Midnight Desire), terang = candlelight ──
+  //    body.dark lama = piring malam netral. Sekarang toggle adalah
+  //    "malam / terang": body.light adalah alternatif papan kertas warna
+  //    avorio. Kunci disimpan di kuro-theme-v2 (baru) agar nilai lama dari
+  //    kuro-theme tidak memaksa tema tak terduga.
+  var THEME_KEY = 'kuro-theme-v2';
   function setAttr(el, k, v) { if (el && el.setAttribute) el.setAttribute(k, v); }
   function readTheme() {
     try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
@@ -560,24 +624,24 @@
   function writeTheme(v) {
     try { localStorage.setItem(THEME_KEY, v); } catch (e) {}
   }
-  function applyTheme(dark, persist) {
-    document.body.classList.toggle('dark', dark);
+  function applyTheme(light, persist) {
+    document.body.classList.toggle('light', light);
     var b = document.getElementById('btn-theme');
     if (b) {
-      b.textContent = dark ? '☀️' : '🌙';
-      setAttr(b, 'aria-pressed', dark ? 'true' : 'false');
-      setAttr(b, 'aria-label', dark ? 'Mode terang' : 'Mode gelap');
+      b.textContent = light ? '☀️' : '🌙';
+      setAttr(b, 'aria-pressed', light ? 'true' : 'false');
+      setAttr(b, 'aria-label', light ? 'Mode gelap' : 'Mode terang');
     }
-    if (persist) writeTheme(dark ? 'dark' : 'light');
+    if (persist) writeTheme(light ? 'light' : 'midnight');
   }
   window.toggleTheme = function toggleTheme() {
-    applyTheme(!document.body.classList.contains('dark'), true);
+    applyTheme(!document.body.classList.contains('light'), true);
   };
   var savedTheme = readTheme();
-  var startDark = savedTheme
-    ? savedTheme === 'dark'
+  var startLight = savedTheme
+    ? savedTheme === 'light'
     : typeof window.matchMedia === 'function'
-      && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  applyTheme(startDark, false);
+      && window.matchMedia('(prefers-color-scheme: light)').matches;
+  applyTheme(startLight, false);
 
 })();
